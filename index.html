@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>My Retro Web Hub</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="A totally rad early-2000s style personal homepage." />
+
+  <style>
+    /* 2000s vibes: loud colors, gradients, bevels, shadows, and unapologetic fun */
+    body {
+      margin: 0;
+      background:
+        linear-gradient(180deg, #001f3f 0%, #003366 40%, #004c99 100%);
+      color: #fff;
+      font-family: "Comic Sans MS", "Trebuchet MS", Verdana, sans-serif;
+    }
+
+    /* Tiled stars background overlay for extra nostalgia */
+    .tile-overlay {
+      position: fixed;
+      inset: 0;
+      background-image:
+        radial-gradient(#8ecaff 1px, transparent 2px),
+        radial-gradient(#ffd500 1px, transparent 2px);
+      background-size: 6px 6px, 10px 10px;
+      background-position: 0 0, 3px 3px;
+      opacity: 0.15;
+      pointer-events: none;
+    }
+
+    header {
+      text-align: center;
+      padding: 12px 8px 0;
+    }
+
+    .logo {
+      display: inline-block;
+      padding: 10px 18px;
+      border: 3px ridge #c0d8ff;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.25), rgba(255,255,255,0.05));
+      box-shadow: 0 0 12px rgba(0, 200, 255, 0.6), inset 0 0 6px rgba(255,255,255,0.4);
+      text-shadow: 0 0 6px #9be7ff;
+      font-weight: bold;
+      letter-spacing: 0.5px;
+      color: #eef7ff;
+    }
+
+    marquee {
+      display: block;
+      margin: 12px auto 16px;
+      max-width: 860px;
+      color: #ffff99;
+      background: rgba(0, 0, 0, 0.25);
+      border: 2px groove #99ccff;
+      padding: 6px 10px;
+    }
+
+    /* Page layout with a classic table-ish feel */
+    .container {
+      max-width: 980px;
+      margin: 0 auto 40px;
+      border: 4px outset #99ccff;
+      background: rgba(0, 0, 0, 0.2);
+      box-shadow: 0 0 20px rgba(0,0,0,0.35);
+    }
+
+    .topnav {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: center;
+      background: linear-gradient(180deg, #0b2f66, #0a2754);
+      border-bottom: 3px ridge #6fbaff;
+      padding: 8px;
+    }
+
+    .topnav a {
+      color: #e7f3ff;
+      text-decoration: none;
+      padding: 8px 12px;
+      border: 2px outset #b7dcff;
+      background: linear-gradient(180deg, #1d4f8a, #133a69);
+      box-shadow: inset 0 0 6px rgba(255,255,255,0.2);
+    }
+    .topnav a:hover {
+      color: #ffffcc;
+      border-style: inset;
+      filter: brightness(1.15);
+    }
+
+    .content {
+      display: grid;
+      grid-template-columns: 240px 1fr;
+      gap: 0;
+      min-height: 540px;
+    }
+
+    .sidebar {
+      border-right: 3px ridge #6fbaff;
+      background: linear-gradient(180deg, #0f356f, #0b2f66);
+      padding: 14px;
+    }
+
+    .sidebar h3, .main h2 {
+      margin: 8px 0 10px;
+      color: #aee3ff;
+      text-shadow: 0 0 6px rgba(175, 231, 255, 0.55);
+    }
+
+    .badge-box {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 12px;
+    }
+    .badge {
+      border: 2px groove #b7dcff;
+      background: rgba(255,255,255,0.08);
+      padding: 6px;
+      text-align: center;
+      font-size: 12px;
+      color: #eaf6ff;
+      box-shadow: inset 0 0 6px rgba(255,255,255,0.15);
+    }
+
+    .hit-counter {
+      margin-top: 12px;
+      padding: 8px;
+      border: 2px groove #b7dcff;
+      background: rgba(255,255,255,0.08);
+      font-size: 13px;
+      color: #ffffcc;
+    }
+
+    .main {
+      padding: 14px 18px;
+    }
+
+    .link-list {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-top: 8px;
+    }
+
+    .card {
+      border: 3px double #99ccff;
+      background: linear-gradient(180deg, rgba(255,255,255,0.13), rgba(255,255,255,0.03));
+      padding: 12px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.25);
+    }
+
+    .card h4 {
+      margin: 0 0 8px;
+      color: #d6f1ff;
+      text-shadow: 0 0 5px rgba(214, 241, 255, 0.6);
+    }
+
+    .card p {
+      margin: 0 0 8px;
+      color: #eef7ff;
+    }
+
+    .card a {
+      color: #ffff99;
+      text-decoration: underline;
+      font-weight: bold;
+    }
+
+    .about {
+      margin-top: 18px;
+      border: 3px double #ffd36f;
+      background: linear-gradient(180deg, rgba(255, 211, 111, 0.18), rgba(255, 211, 111, 0.08));
+      padding: 12px;
+      color: #fff3d6;
+    }
+
+    .footer {
+      text-align: center;
+      padding: 10px 8px 16px;
+      color: #dbefff;
+      font-size: 12px;
+    }
+
+    .blink {
+      animation: blink 1s steps(2, start) infinite;
+    }
+    @keyframes blink {
+      0%, 49% { opacity: 1; }
+      50%, 100% { opacity: 0.25; }
+    }
+
+    /* Make it workable on small screens */
+    @media (max-width: 760px) {
+      .content {
+        grid-template-columns: 1fr;
+      }
+      .link-list {
+        grid-template-columns: 1fr;
+      }
+      .topnav {
+        justify-content: flex-start;
+        overflow-x: auto;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="tile-overlay" aria-hidden="true"></div>
+
+  <header>
+    <div class="logo">
+      <span class="blink">★</span> Welcome to My Retro Web Hub <span class="blink">★</span>
+    </div>
+
+    <marquee behavior="scroll" direction="left" scrollamount="4" aria-label="Site news ticker">
+      Now playing: My greatest hits from the golden age of the web — bookmark me and surf the links below!
+    </marquee>
+  </header>
+
+  <div class="container">
+    <nav class="topnav" aria-label="Primary">
+      <a href="#home">Home</a>
+      <a href="#projects">Projects</a>
+      <a href="#about">About me</a>
+      <a href="#guestbook">Guestbook</a>
+    </nav>
+
+    <div class="content" id="home">
+      <aside class="sidebar">
+        <h3>Site badges</h3>
+        <div class="badge-box">
+          <div class="badge">Best Viewed in 1024×768</div>
+          <div class="badge">Made with ♥ and HTML</div>
+          <div class="badge">Optimized for Fun</div>
+          <div class="badge">No Flash Required</div>
+        </div>
+
+        <div class="hit-counter" id="guestbook">
+          <strong>Hit Counter:</strong>
+          <div id="counter">You are visitor #<span id="count">1001</span></div>
+          <small>(Just like the old days, this counter is for vibes.)</small>
+        </div>
+
+        <div class="hit-counter" style="margin-top: 12px;">
+          <strong>Guestbook:</strong>
+          <p>Say hi! Drop a line about where you're surfing from.</p>
+          <p><a href="mailto:you@example.com?subject=Guestbook%20Entry">Sign the guestbook via email</a></p>
+        </div>
+      </aside>
+
+      <main class="main">
+        <h2 id="projects">Featured projects</h2>
+
+        <div class="link-list">
+          <div class="card">
+            <h4>Net Atlas Ultimate</h4>
+            <p>A deep dive across the digital map—curated routes, resources, and insights.</p>
+            <p><a href="https://nicholas-tritsaris.github.io/Net-Atlas-Ultimate/" target="_blank" rel="noopener">Visit Net Atlas Ultimate</a></p>
+          </div>
+
+          <div class="card">
+            <h4>Net Observation Project</h4>
+            <p>Notes from the wild web: patterns, behaviors, and curiosities observed online.</p>
+            <p><a href="https://nicholas-tritsaris.github.io/net-observation-project/" target="_blank" rel="noopener">Explore Net Observation</a></p>
+          </div>
+
+          <div class="card">
+            <h4>MC Property Encyclopedia</h4>
+            <p>A reference for Minecraft property and place lore—organized, searchable, and expandable.</p>
+            <p><a href="https://nicholas-tritsaris.github.io/MCPropertyEncyclopedia/" target="_blank" rel="noopener">Open MC Property Encyclopedia</a></p>
+          </div>
+
+          <div class="card">
+            <h4>More soon…</h4>
+            <p>New experiments and throwbacks are always on the way. Check back for updates!</p>
+            <p><span style="color:#ffff99;">Bookmark this page for fresh drops.</span></p>
+          </div>
+        </div>
+
+        <div class="about" id="about">
+          <h3>About me</h3>
+          <p>Hey, I’m Nicholas. I like building web-first projects that feel like exploring—maps, archives, and playful interfaces.</p>
+          <p>I grew up in the era of dial-up, pop-up blockers, and personal homepages; this space nods to that spirit while still being usable today.</p>
+          <p>When I’m not tinkering, I’m documenting patterns and stories from the net—because the web is as much culture as code.</p>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <footer class="footer">
+    © 2000–2025 My Retro Web Hub • Hosted with love • <span class="blink">Under Perpetual Construction</span>
+  </footer>
+
+  <script>
+    // Friendly faux counter increment (client-side only, just for the retro feel)
+    (function() {
+      try {
+        const el = document.getElementById('count');
+        const base = Number(localStorage.getItem('retroCounter') || 1001);
+        const next = base + 1;
+        localStorage.setItem('retroCounter', String(next));
+        el.textContent = next;
+      } catch (e) { /* no-op */ }
+    })();
+  </script>
+</body>
+</html>
