@@ -246,17 +246,19 @@
           <div class="badge">No Flash Required</div>
         </div>
 
-        <div class="hit-counter" id="guestbook">
-          <strong>Hit Counter:</strong>
-          <div id="counter">You are visitor #<span id="count">1001</span></div>
-          <small>(Just like the old days, this counter is for vibes.)</small>
+        <div class="hit-counter">
+         <strong>Hit Counter:</strong>
+         <div id="counter">You are visitor #<span id="count">0</span></div>
+         <small>(Just like the old days, this counter is for vibes.)</small>
         </div>
 
-        <div class="hit-counter" style="margin-top: 12px;">
-          <strong>Guestbook:</strong>
-          <p>Say hi! Drop a line about where you're surfing from.</p>
-          <p><a href="mailto:you@example.com?subject=Guestbook%20Entry">Sign the guestbook via email</a></p>
-        </div>
+       <div class="hit-counter" style="margin-top:12px;">
+        <strong>Guestbook:</strong>
+        <input type="text" id="guestName" placeholder="Your Name">
+        <input type="text" id="guestMsg" placeholder="Your Message">
+        <button onclick="addGuest()">Sign Guestbook</button>
+        <div id="guestList" style="margin-top:10px;"></div>
+       </div>
       </aside>
 
       <main class="main">
@@ -401,18 +403,105 @@
   </div>
 </footer>
 
+<script type="module">
+  // --- Firebase SDK Imports ---
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
+  import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-analytics.js";
+  import { 
+    getFirestore, doc, getDoc, setDoc, collection, addDoc, query, orderBy, onSnapshot 
+  } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
 
-  <script>
-    // Friendly faux counter increment (client-side only, just for the retro feel)
-    (function() {
-      try {
-        const el = document.getElementById('count');
-        const base = Number(localStorage.getItem('retroCounter') || 1001);
-        const next = base + 1;
-        localStorage.setItem('retroCounter', String(next));
-        el.textContent = next;
-      } catch (e) { /* no-op */ }
-    })();
-  </script>
+  // --- Firebase Configuration ---
+  const firebaseConfig = {
+    apiKey: "AIzaSyC5m7Lkk2OdtL4KI3Z5A82HBx3gNBUVpOg",
+    authDomain: "nicholas-tritsaris.firebaseapp.com",
+    projectId: "nicholas-tritsaris",
+    storageBucket: "nicholas-tritsaris.firebasestorage.app",
+    messagingSenderId: "614514816130",
+    appId: "1:614514816130:web:0b1a337f4182d86faaf09b",
+    measurementId: "G-DS2QQ476X6"
+  };
+
+  // --- Initialize Firebase ---
+  const app = initializeApp(firebaseConfig);
+  const analytics = getAnalytics(app);
+  const db = getFirestore();
+
+  // --- HIT COUNTER ---
+  const counterEl = document.getElementById('count');
+  const counterRef = doc(db, 'stats', 'hits');
+  let currentCount = 0;
+
+  async function incrementHit() {
+    const docSnap = await getDoc(counterRef);
+    if (!docSnap.exists()) {
+      await setDoc(counterRef, { count: 1 });
+      currentCount = 1;
+    } else {
+      currentCount = docSnap.data().count + 1;
+      await setDoc(counterRef, { count: currentCount });
+    }
+    counterEl.textContent = currentCount;
+  }
+
+  incrementHit();
+
+  onSnapshot(counterRef, snapshot => {
+    const newCount = snapshot.data()?.count ?? 0;
+    if (newCount !== currentCount) {
+      currentCount = newCount;
+      counterEl.textContent = currentCount;
+    }
+  });
+
+  // --- GUESTBOOK ---
+  const guestNameInput = document.getElementById('guestName');
+  const guestMsgInput = document.getElementById('guestMsg');
+  const guestListEl = document.getElementById('guestList');
+  const guestsRef = collection(db, 'guestbook');
+  const q = query(guestsRef, orderBy('timestamp'));
+
+  // Maintain a map of doc IDs to avoid full rewrites
+  const guestMap = new Map();
+
+  window.addGuest = async function() {
+    const name = guestNameInput.value.trim();
+    const msg = guestMsgInput.value.trim();
+    if (!name || !msg) return alert('Enter both name and message.');
+
+    await addDoc(guestsRef, {
+      name,
+      msg,
+      timestamp: Date.now()
+    });
+
+    guestNameInput.value = '';
+    guestMsgInput.value = '';
+  }
+
+  onSnapshot(q, snapshot => {
+    snapshot.docChanges().forEach(change => {
+      const docId = change.doc.id;
+      const g = change.doc.data();
+
+      if (change.type === "added") {
+        const div = document.createElement('div');
+        div.id = `guest-${docId}`;
+        div.innerHTML = `<strong>${g.name}</strong>: ${g.msg}`;
+        guestListEl.appendChild(div);
+        guestMap.set(docId, div);
+      } else if (change.type === "modified") {
+        const div = guestMap.get(docId);
+        if (div) div.innerHTML = `<strong>${g.name}</strong>: ${g.msg}`;
+      } else if (change.type === "removed") {
+        const div = guestMap.get(docId);
+        if (div) {
+          guestListEl.removeChild(div);
+          guestMap.delete(docId);
+        }
+      }
+    });
+  });
+</script>
 </body>
 </html>
