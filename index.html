@@ -10,9 +10,13 @@
   <!-- End Google Tag Manager -->
 
   <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-ETVS5Y57BG"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
-    function gtag() { dataLayer.push(arguments); }
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    // Default consent state is denied
     gtag('consent', 'default', {
       'ad_user_data': 'denied',
       'ad_personalization': 'denied',
@@ -20,8 +24,8 @@
       'analytics_storage': 'denied',
       'wait_for_update': 500,
     });
-    gtag('js', new Date());
-    gtag('config', 'G-ETVS5Y57B');
+
+    gtag('config', 'G-ETVS5Y57BG');
   </script>
 
   <meta charset="UTF-8" />
@@ -528,40 +532,38 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   const db = getFirestore();
 
   // --- COOKIE BANNER ---
-  const banner = document.getElementById('cookie-banner');
-  const acceptBtn = document.getElementById('accept-cookies');
-  const backdrop = document.getElementById('popup-backdrop');
+  // Wait for the DOM to be fully loaded before running the banner script
+  document.addEventListener('DOMContentLoaded', () => {
+    const banner = document.getElementById('cookie-banner');
+    const acceptBtn = document.getElementById('accept-cookies');
+    const backdrop = document.getElementById('popup-backdrop');
 
-  function loadGtag() {
-    if(document.querySelector('script[src="https://www.googletagmanager.com/gtag/js?id=G-ETVS5Y57BG"]')) return;
-    var gtagScript = document.createElement('script');
-    gtagScript.async = true;
-    gtagScript.src = 'https://www.googletagmanager.com/gtag/js?id=G-ETVS5Y57BG';
+    // If banner elements aren't found, exit gracefully
+    if (!banner || !acceptBtn || !backdrop) {
+      console.error("Banner elements not found. Consent flow cannot start.");
+      return;
+    }
 
-    var firstScript = document.getElementsByTagName('script')[0];
-    firstScript.parentNode.insertBefore(gtagScript,firstScript);
-  }
+    // On page load, check if consent has already been granted
+    if (localStorage.getItem("consentGranted") !== "true") {
+      banner.style.display = 'block';
+      backdrop.style.display = 'block';
+    }
 
-  if (localStorage.getItem("consentGranted") === "true") {
-    loadGtag();
-  } else {
-    banner.style.display = 'block';
-    backdrop.style.display = 'block';
-  }
+    acceptBtn.addEventListener('click', () => {
+      localStorage.setItem("consentGranted", "true");
 
-  acceptBtn.addEventListener('click', () => {
-    localStorage.setItem("consentGranted", "true");
-    function gtag() { dataLayer.push(arguments); }
-    gtag('consent', 'update', {
-      ad_user_data: 'granted',
-      ad_personalization: 'granted',
-      ad_storage: 'granted',
-      analytics_storage: 'granted'
+      // Update the consent state for the already-loaded tags
+      gtag('consent', 'update', {
+        'ad_user_data': 'granted',
+        'ad_personalization': 'granted',
+        'ad_storage': 'granted',
+        'analytics_storage': 'granted'
+      });
+
+      banner.style.display = 'none';
+      backdrop.style.display = 'none';
     });
-
-    banner.style.display = 'none';
-    backdrop.style.display = 'none';
-    loadGtag();
   });
 
   // --- HIT COUNTER ---
