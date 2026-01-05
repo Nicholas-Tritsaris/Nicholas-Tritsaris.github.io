@@ -1,15 +1,29 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-ETVS5Y57BG"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
+  <!-- Google Tag Manager -->
+  <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+  new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+  j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+  'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+  })(window,document,'script','dataLayer','GTM-5ZRMHXNN');</script>
+  <!-- End Google Tag Manager -->
 
-  gtag('config', 'G-ETVS5Y57BG');
-</script>
+  <!-- Google tag (gtag.js) -->
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() { dataLayer.push(arguments); }
+    gtag('consent', 'default', {
+      'ad_user_data': 'denied',
+      'ad_personalization': 'denied',
+      'ad_storage': 'denied',
+      'analytics_storage': 'denied',
+      'wait_for_update': 500,
+    });
+    gtag('js', new Date());
+    gtag('config', 'G-ETVS5Y57B');
+  </script>
+
   <meta charset="UTF-8" />
   <title>My Retro Web Hub</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -223,21 +237,27 @@
     }
 
     /* Y2K-style cookie banner */
+    #popup-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.7);
+      z-index: 999;
+      display: none; /* Hidden by default */
+    }
     #cookie-banner {
       position: fixed;
-      bottom: 10px;
-      left: 10px;
-      right: 10px;
-      max-width: 600px;
-      margin: 0 auto;
-      background: linear-gradient(180deg, #0a2754, #0b2f66);
-      color: #fff;
-      padding: 15px;
-      border: 3px ridge #6fbaff;
-      box-shadow: 0 0 15px rgba(0, 200, 255, 0.5);
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      max-width: 500px;
+      background: linear-gradient(180deg, #0f356f, #0b2f66);
+      color: #eaf6ff;
+      padding: 20px;
+      border: 4px outset #99ccff;
+      box-shadow: 0 0 25px rgba(0, 225, 255, 0.6), inset 0 0 8px rgba(255,255,255,0.3);
       z-index: 1000;
       text-align: center;
-      font-size: 14px;
+      font-size: 16px;
       display: none; /* Hidden by default */
     }
     #cookie-banner p {
@@ -258,6 +278,10 @@
 </head>
 
 <body>
+  <!-- Google Tag Manager (noscript) -->
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-5ZRMHXNN"
+height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+<!-- End Google Tag Manager (noscript) -->
   <div class="tile-overlay" aria-hidden="true"></div>
 
   <header>
@@ -506,14 +530,38 @@
   // --- COOKIE BANNER ---
   const banner = document.getElementById('cookie-banner');
   const acceptBtn = document.getElementById('accept-cookies');
+  const backdrop = document.getElementById('popup-backdrop');
 
-  if (!document.cookie.split('; ').find(row => row.startsWith('cookies_accepted='))) {
+  function loadGtag() {
+    if(document.querySelector('script[src="https://www.googletagmanager.com/gtag/js?id=G-ETVS5Y57BG"]')) return;
+    var gtagScript = document.createElement('script');
+    gtagScript.async = true;
+    gtagScript.src = 'https://www.googletagmanager.com/gtag/js?id=G-ETVS5Y57BG';
+
+    var firstScript = document.getElementsByTagName('script')[0];
+    firstScript.parentNode.insertBefore(gtagScript,firstScript);
+  }
+
+  if (localStorage.getItem("consentGranted") === "true") {
+    loadGtag();
+  } else {
     banner.style.display = 'block';
+    backdrop.style.display = 'block';
   }
 
   acceptBtn.addEventListener('click', () => {
+    localStorage.setItem("consentGranted", "true");
+    function gtag() { dataLayer.push(arguments); }
+    gtag('consent', 'update', {
+      ad_user_data: 'granted',
+      ad_personalization: 'granted',
+      ad_storage: 'granted',
+      analytics_storage: 'granted'
+    });
+
     banner.style.display = 'none';
-    document.cookie = "cookies_accepted=true; max-age=31536000; path=/";
+    backdrop.style.display = 'none';
+    loadGtag();
   });
 
   // --- HIT COUNTER ---
@@ -593,9 +641,11 @@
   });
 </script>
 
+<div id="popup-backdrop"></div>
 <div id="cookie-banner">
-  <p>Our website uses cookies to improve your experience. By continuing to browse, you agree to our use of cookies.</p>
-  <button id="accept-cookies">Accept & Close</button>
+  <p>Welcome, traveler of the old web! <span class="blink">★</span></p>
+  <p>This site uses cookies for analytics and to improve your retro experience. By continuing, you accept our terms.</p>
+  <button id="accept-cookies">Enter the Hub</button>
 </div>
 </body>
 </html>
