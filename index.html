@@ -221,6 +221,39 @@
         overflow-x: auto;
       }
     }
+
+    /* Y2K-style cookie banner */
+    #cookie-banner {
+      position: fixed;
+      bottom: 10px;
+      left: 10px;
+      right: 10px;
+      max-width: 600px;
+      margin: 0 auto;
+      background: linear-gradient(180deg, #0a2754, #0b2f66);
+      color: #fff;
+      padding: 15px;
+      border: 3px ridge #6fbaff;
+      box-shadow: 0 0 15px rgba(0, 200, 255, 0.5);
+      z-index: 1000;
+      text-align: center;
+      font-size: 14px;
+      display: none; /* Hidden by default */
+    }
+    #cookie-banner p {
+      margin: 0 0 10px;
+    }
+    #cookie-banner button {
+      background: linear-gradient(180deg, #1d4f8a, #133a69);
+      color: #e7f3ff;
+      border: 2px outset #b7dcff;
+      padding: 8px 12px;
+      cursor: pointer;
+    }
+    #cookie-banner button:hover {
+      filter: brightness(1.15);
+      border-style: inset;
+    }
   </style>
 </head>
 
@@ -470,6 +503,19 @@
   const analytics = getAnalytics(app);
   const db = getFirestore();
 
+  // --- COOKIE BANNER ---
+  const banner = document.getElementById('cookie-banner');
+  const acceptBtn = document.getElementById('accept-cookies');
+
+  if (!document.cookie.split('; ').find(row => row.startsWith('cookies_accepted='))) {
+    banner.style.display = 'block';
+  }
+
+  acceptBtn.addEventListener('click', () => {
+    banner.style.display = 'none';
+    document.cookie = "cookies_accepted=true; max-age=31536000; path=/";
+  });
+
   // --- HIT COUNTER ---
   const counterEl = document.getElementById('count');
   const counterRef = doc(db, 'stats', 'hits');
@@ -546,5 +592,10 @@
     });
   });
 </script>
+
+<div id="cookie-banner">
+  <p>Our website uses cookies to improve your experience. By continuing to browse, you agree to our use of cookies.</p>
+  <button id="accept-cookies">Accept & Close</button>
+</div>
 </body>
 </html>
