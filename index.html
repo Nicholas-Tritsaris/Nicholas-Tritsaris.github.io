@@ -26,13 +26,6 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 
     gtag('config', 'G-ETVS5Y57BG');
   </script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-ETVS5Y57BG');
-</script>
   <meta charset="UTF-8" />
   <title>My Retro Web Hub</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -384,7 +377,49 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           <div class="card">
             <h4>NUT Tracker</h4>
             <p>A command-line tool for tracking nutrition and food intake.</p>
-            <p><a href="https.com/Nicholas-Tritsaris/NUT-tracket" target="_blank" rel="noopener">Find on GitHub</a></p>
+            <p><a href="https://github.com/Nicholas-Tritsaris/NUT-tracket" target="_blank" rel="noopener">Find on GitHub</a></p>
+          </div>
+
+          <div class="card">
+            <h4>EchoZone</h4>
+            <p>A location-based, anonymous social media platform inspired by Yik Yak, designed for local discussions.</p>
+            <p><a href="https://github.com/Nicholas-Tritsaris/EchoZone" target="_blank" rel="noopener">View EchoZone</a></p>
+          </div>
+
+          <div class="card">
+            <h4>Echoverse</h4>
+            <p>A PHP and HTML based project for community interaction and social connectivity.</p>
+            <p><a href="https://blueboop.is-a.dev/Echoverse/" target="_blank" rel="noopener">Visit Echoverse</a></p>
+          </div>
+
+          <div class="card">
+            <h4>New-Retro-Hub</h4>
+            <p>An advanced TypeScript-based iteration of the retro web experience with modern features.</p>
+            <p><a href="https://blueboop.is-a.dev/New-Retro-Hub/" target="_blank" rel="noopener">Explore New-Retro-Hub</a></p>
+          </div>
+
+          <div class="card">
+            <h4>All-coding-Languages</h4>
+            <p>A comprehensive collection of code examples across various programming languages.</p>
+            <p><a href="https://blueboop.is-a.dev/All-coding-Languages/" target="_blank" rel="noopener">Browse Languages</a></p>
+          </div>
+
+          <div class="card">
+            <h4>Chat</h4>
+            <p>A simple, retro-styled chat interface for real-time communication experiments.</p>
+            <p><a href="https://blueboop.is-a.dev/chat/" target="_blank" rel="noopener">Open Chat</a></p>
+          </div>
+
+          <div class="card">
+            <h4>Windows-19584</h4>
+            <p>A project exploring retro Windows aesthetics and functionalities.</p>
+            <p><a href="https://github.com/Nicholas-Tritsaris/Windows-19584" target="_blank" rel="noopener">View Windows-19584</a></p>
+          </div>
+
+          <div class="card">
+            <h4>Douyin Downloader</h4>
+            <p>A cross-platform tool built with Tauri for downloading Douyin videos easily.</p>
+            <p><a href="https://blueboop.is-a.dev/workspace/" target="_blank" rel="noopener">Visit Douyin Downloader</a></p>
           </div>
 
           <div class="card">
@@ -528,72 +563,92 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   // --- Initialize Firebase ---
   const app = initializeApp(firebaseConfig);
   const analytics = getAnalytics(app);
-  const db = getFirestore();
+  const db = getFirestore(app);
 
   // --- COOKIE BANNER ---
   const banner = document.getElementById('cookie-banner');
   const acceptBtn = document.getElementById('accept-cookies');
 
-  if (!document.cookie.split('; ').find(row => row.startsWith('cookies_accepted='))) {
+  function updateConsent() {
+    gtag('consent', 'update', {
+      'ad_user_data': 'granted',
+      'ad_personalization': 'granted',
+      'ad_storage': 'granted',
+      'analytics_storage': 'granted'
+    });
+  }
+
+  if (document.cookie.split('; ').find(row => row.startsWith('cookies_accepted='))) {
+    updateConsent();
+  } else {
     banner.style.display = 'block';
   }
 
   acceptBtn.addEventListener('click', () => {
     banner.style.display = 'none';
     document.cookie = "cookies_accepted=true; max-age=31536000; path=/";
+    updateConsent();
   });
 
-  // --- HIT COUNTER ---
+  // --- AUTHENTICATION & FIRESTORE LOGIC ---
   const counterEl = document.getElementById('count');
   const counterRef = doc(db, 'stats', 'hits');
   let currentCount = 0;
 
-  async function incrementHit() {
-    const docSnap = await getDoc(counterRef);
-    if (!docSnap.exists()) {
-      await setDoc(counterRef, { count: 1 });
-      currentCount = 1;
-    } else {
-      currentCount = docSnap.data().count + 1;
-      await setDoc(counterRef, { count: currentCount });
-    }
-    counterEl.textContent = currentCount;
-  }
-
-  incrementHit();
-
-  onSnapshot(counterRef, snapshot => {
-    const newCount = snapshot.data()?.count ?? 0;
-    if (newCount !== currentCount) {
-      currentCount = newCount;
-      counterEl.textContent = currentCount;
-    }
-  });
-
-  // --- GUESTBOOK ---
   const guestNameInput = document.getElementById('guestName');
   const guestMsgInput = document.getElementById('guestMsg');
   const guestListEl = document.getElementById('guestList');
   const guestsRef = collection(db, 'guestbook');
   const q = query(guestsRef, orderBy('timestamp'));
-
-  // Maintain a map of doc IDs to avoid full rewrites
   const guestMap = new Map();
+
+  async function incrementHit() {
+    try {
+      const docSnap = await getDoc(counterRef);
+      if (!docSnap.exists()) {
+        await setDoc(counterRef, { count: 1 });
+        currentCount = 1;
+      } else {
+        currentCount = (docSnap.data().count || 0) + 1;
+        await setDoc(counterRef, { count: currentCount });
+      }
+      counterEl.textContent = currentCount;
+    } catch (err) {
+      console.error("Error incrementing hit counter:", err);
+    }
+  }
 
   window.addGuest = async function() {
     const name = guestNameInput.value.trim();
     const msg = guestMsgInput.value.trim();
     if (!name || !msg) return alert('Enter both name and message.');
 
-    await addDoc(guestsRef, {
-      name,
-      msg,
-      timestamp: Date.now()
-    });
-
-    guestNameInput.value = '';
-    guestMsgInput.value = '';
+    try {
+      await addDoc(guestsRef, {
+        name,
+        msg,
+        timestamp: Date.now()
+      });
+      guestNameInput.value = '';
+      guestMsgInput.value = '';
+    } catch (err) {
+      console.error("Error adding to guestbook:", err);
+      alert("Failed to sign guestbook. See console for details.");
+    }
   }
+
+  // Initialize Firebase Logic
+  incrementHit();
+
+  onSnapshot(counterRef, snapshot => {
+      const newCount = snapshot.data()?.count ?? 0;
+      if (newCount !== currentCount) {
+        currentCount = newCount;
+        counterEl.textContent = currentCount;
+      }
+    }, err => {
+      console.error("Hit counter snapshot error:", err);
+    });
 
   onSnapshot(q, snapshot => {
     snapshot.docChanges().forEach(change => {
@@ -617,6 +672,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         }
       }
     });
+  }, err => {
+    console.error("Guestbook snapshot error:", err);
   });
 </script>
 
