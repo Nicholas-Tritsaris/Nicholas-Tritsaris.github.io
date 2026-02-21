@@ -26,13 +26,6 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 
     gtag('config', 'G-ETVS5Y57BG');
   </script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-ETVS5Y57BG');
-</script>
   <meta charset="UTF-8" />
   <title>My Retro Web Hub</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -570,72 +563,92 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   // --- Initialize Firebase ---
   const app = initializeApp(firebaseConfig);
   const analytics = getAnalytics(app);
-  const db = getFirestore();
+  const db = getFirestore(app);
 
   // --- COOKIE BANNER ---
   const banner = document.getElementById('cookie-banner');
   const acceptBtn = document.getElementById('accept-cookies');
 
-  if (!document.cookie.split('; ').find(row => row.startsWith('cookies_accepted='))) {
+  function updateConsent() {
+    gtag('consent', 'update', {
+      'ad_user_data': 'granted',
+      'ad_personalization': 'granted',
+      'ad_storage': 'granted',
+      'analytics_storage': 'granted'
+    });
+  }
+
+  if (document.cookie.split('; ').find(row => row.startsWith('cookies_accepted='))) {
+    updateConsent();
+  } else {
     banner.style.display = 'block';
   }
 
   acceptBtn.addEventListener('click', () => {
     banner.style.display = 'none';
     document.cookie = "cookies_accepted=true; max-age=31536000; path=/";
+    updateConsent();
   });
 
-  // --- HIT COUNTER ---
+  // --- AUTHENTICATION & FIRESTORE LOGIC ---
   const counterEl = document.getElementById('count');
   const counterRef = doc(db, 'stats', 'hits');
   let currentCount = 0;
 
-  async function incrementHit() {
-    const docSnap = await getDoc(counterRef);
-    if (!docSnap.exists()) {
-      await setDoc(counterRef, { count: 1 });
-      currentCount = 1;
-    } else {
-      currentCount = docSnap.data().count + 1;
-      await setDoc(counterRef, { count: currentCount });
-    }
-    counterEl.textContent = currentCount;
-  }
-
-  incrementHit();
-
-  onSnapshot(counterRef, snapshot => {
-    const newCount = snapshot.data()?.count ?? 0;
-    if (newCount !== currentCount) {
-      currentCount = newCount;
-      counterEl.textContent = currentCount;
-    }
-  });
-
-  // --- GUESTBOOK ---
   const guestNameInput = document.getElementById('guestName');
   const guestMsgInput = document.getElementById('guestMsg');
   const guestListEl = document.getElementById('guestList');
   const guestsRef = collection(db, 'guestbook');
   const q = query(guestsRef, orderBy('timestamp'));
-
-  // Maintain a map of doc IDs to avoid full rewrites
   const guestMap = new Map();
+
+  async function incrementHit() {
+    try {
+      const docSnap = await getDoc(counterRef);
+      if (!docSnap.exists()) {
+        await setDoc(counterRef, { count: 1 });
+        currentCount = 1;
+      } else {
+        currentCount = (docSnap.data().count || 0) + 1;
+        await setDoc(counterRef, { count: currentCount });
+      }
+      counterEl.textContent = currentCount;
+    } catch (err) {
+      console.error("Error incrementing hit counter:", err);
+    }
+  }
 
   window.addGuest = async function() {
     const name = guestNameInput.value.trim();
     const msg = guestMsgInput.value.trim();
     if (!name || !msg) return alert('Enter both name and message.');
 
-    await addDoc(guestsRef, {
-      name,
-      msg,
-      timestamp: Date.now()
-    });
-
-    guestNameInput.value = '';
-    guestMsgInput.value = '';
+    try {
+      await addDoc(guestsRef, {
+        name,
+        msg,
+        timestamp: Date.now()
+      });
+      guestNameInput.value = '';
+      guestMsgInput.value = '';
+    } catch (err) {
+      console.error("Error adding to guestbook:", err);
+      alert("Failed to sign guestbook. See console for details.");
+    }
   }
+
+  // Initialize Firebase Logic
+  incrementHit();
+
+  onSnapshot(counterRef, snapshot => {
+      const newCount = snapshot.data()?.count ?? 0;
+      if (newCount !== currentCount) {
+        currentCount = newCount;
+        counterEl.textContent = currentCount;
+      }
+    }, err => {
+      console.error("Hit counter snapshot error:", err);
+    });
 
   onSnapshot(q, snapshot => {
     snapshot.docChanges().forEach(change => {
@@ -659,6 +672,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         }
       }
     });
+  }, err => {
+    console.error("Guestbook snapshot error:", err);
   });
 </script>
 
