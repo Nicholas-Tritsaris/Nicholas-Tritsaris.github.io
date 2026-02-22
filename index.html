@@ -543,7 +543,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
   import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-analytics.js";
   import { 
-    getFirestore, doc, getDoc, setDoc, collection, addDoc, query, orderBy, onSnapshot 
+    getFirestore, doc, setDoc, updateDoc, increment, collection, addDoc, query, orderBy, onSnapshot
   } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 
   // --- Firebase Configuration ---
@@ -601,17 +601,21 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
   async function incrementHit() {
     try {
-      const docSnap = await getDoc(counterRef);
-      if (!docSnap.exists()) {
-        await setDoc(counterRef, { count: 1 });
-        currentCount = 1;
-      } else {
-        currentCount = (docSnap.data().count || 0) + 1;
-        await setDoc(counterRef, { count: currentCount });
-      }
-      counterEl.textContent = currentCount;
+      // Use atomic increment for reliability
+      await updateDoc(counterRef, {
+        count: increment(1)
+      });
     } catch (err) {
-      console.error("Error incrementing hit counter:", err);
+      // If the document doesn't exist yet, create it
+      if (err.code === 'not-found') {
+        try {
+          await setDoc(counterRef, { count: 1 });
+        } catch (setErr) {
+          console.error("Error creating hit counter document:", setErr);
+        }
+      } else {
+        console.error("Error incrementing hit counter:", err);
+      }
     }
   }
 
@@ -635,17 +639,15 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   }
 
   // Initialize Firebase Logic
-  incrementHit();
-
   onSnapshot(counterRef, snapshot => {
-      const newCount = snapshot.data()?.count ?? 0;
-      if (newCount !== currentCount) {
-        currentCount = newCount;
-        counterEl.textContent = currentCount;
-      }
-    }, err => {
-      console.error("Hit counter snapshot error:", err);
-    });
+    const newCount = snapshot.data()?.count ?? 0;
+    currentCount = newCount;
+    counterEl.textContent = currentCount;
+  }, err => {
+    console.error("Hit counter snapshot error:", err);
+  });
+
+  incrementHit();
 
   onSnapshot(q, snapshot => {
     snapshot.docChanges().forEach(change => {
