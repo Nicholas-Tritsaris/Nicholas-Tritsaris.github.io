@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>PROJECT SILHOUETTE — Intelligence Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex, nofollow, noarchive" />
+  <style>
+    /* ── RETRO THEME — matches index.html ── */
+    *, *::before, *::after { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: linear-gradient(180deg, #001f3f 0%, #003366 40%, #004c99 100%);
+      color: #fff;
+      font-family: "Comic Sans MS", "Trebuchet MS", Verdana, sans-serif;
+      min-height: 100vh;
+    }
+
+    /* Tiled stars overlay */
+    .tile-overlay {
+      position: fixed;
+      inset: 0;
+      background-image:
+        radial-gradient(#8ecaff 1px, transparent 2px),
+        radial-gradient(#ffd500 1px, transparent 2px);
+      background-size: 6px 6px, 10px 10px;
+      background-position: 0 0, 3px 3px;
+      opacity: 0.15;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── HEADER ── */
+    #dash-header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: linear-gradient(180deg, #0b2f66, #0a2754);
+      border-bottom: 3px ridge #6fbaff;
+      padding: 8px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .dash-title {
+      font-size: 16px;
+      font-weight: bold;
+      color: #aee3ff;
+      text-shadow: 0 0 6px rgba(175, 231, 255, 0.6);
+    }
+
+    .dash-title span {
+      color: #ff4444;
+      animation: blink 1s steps(2, start) infinite;
+    }
+
+    .header-btns {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      background: linear-gradient(180deg, #1d4f8a, #133a69);
+      color: #e7f3ff;
+      border: 2px outset #b7dcff;
+      padding: 6px 12px;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+    .btn:hover { filter: brightness(1.15); border-style: inset; }
+    .btn-danger { background: linear-gradient(180deg, #6a1a1a, #4a0f0f); border-color: #ff9999; color: #ffcccc; }
+    .btn-success { background: linear-gradient(180deg, #1a5a1a, #0f4a0f); border-color: #99ff99; color: #ccffcc; }
+
+    /* ── MAIN WRAPPER ── */
+    #dash-body {
+      position: relative;
+      z-index: 1;
+      max-width: 1400px;
+      margin: 16px auto 40px;
+      padding: 0 12px;
+    }
+
+    /* ── AUTH GATE ── */
+    #auth-gate {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 60vh;
+    }
+
+    #auth-gate-box {
+      border: 4px outset #99ccff;
+      background: rgba(0,0,0,0.3);
+      padding: 24px;
+      text-align: center;
+      max-width: 360px;
+    }
+
+    /* ── STATS BAR ── */
+    #stats-bar {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .stat-card {
+      border: 3px double #99ccff;
+      background: linear-gradient(180deg, rgba(255,255,255,0.13), rgba(255,255,255,0.03));
+      padding: 12px;
+      text-align: center;
+      box-shadow: 0 0 10px rgba(0,0,0,0.25);
+    }
+
+    .stat-label {
+      font-size: 11px;
+      color: #aee3ff;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    .stat-value {
+      font-size: 26px;
+      font-weight: bold;
+      color: #ffff99;
+      text-shadow: 0 0 8px rgba(255,255,100,0.5);
+    }
+
+    /* ── CONTROLS ── */
+    #controls {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 12px;
+      padding: 10px;
+      background: rgba(0,0,0,0.2);
+      border: 2px groove #6fbaff;
+    }
+
+    #controls input[type="text"], #controls select {
+      background: rgba(0,0,0,0.4);
+      border: 2px groove #6fbaff;
+      color: #e7f3ff;
+      padding: 6px 10px;
+      font-family: inherit;
+      font-size: 13px;
+    }
+
+    #controls input[type="text"] {
+      min-width: 200px;
+      flex: 1;
+    }
+
+    ::placeholder { color: #7aabcf; }
+
+    /* ── TABLE ── */
+    #table-wrap {
+      overflow-x: auto;
+      border: 4px outset #99ccff;
+      background: rgba(0,0,0,0.2);
+      box-shadow: 0 0 20px rgba(0,0,0,0.35);
+    }
+
+    #data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      min-width: 900px;
+    }
+
+    #data-table th {
+      background: linear-gradient(180deg, #0b2f66, #0a2754);
+      border: 1px ridge #6fbaff;
+      padding: 8px 10px;
+      color: #aee3ff;
+      text-align: left;
+      cursor: pointer;
+      white-space: nowrap;
+      user-select: none;
+    }
+
+    #data-table th:hover { filter: brightness(1.2); }
+    #data-table th .sort-icon { color: #ffff99; margin-left: 4px; }
+
+    #data-table td {
+      border: 1px solid rgba(111, 186, 255, 0.3);
+      padding: 6px 10px;
+      max-width: 200px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      vertical-align: top;
+    }
+
+    #data-table tr:nth-child(even) td { background: rgba(255,255,255,0.04); }
+    #data-table tr:hover td { background: rgba(0, 200, 255, 0.1); }
+
+    .fp-cell {
+      color: #ffff99;
+      font-family: monospace;
+      font-size: 10px;
+    }
+
+    .ip-cell { color: #99ff99; font-family: monospace; }
+    .time-cell { color: #ccccff; }
+    .browser-cell { color: #ffd6b3; }
+    .os-cell { color: #b3ffd6; }
+    .gpu-cell { color: #d6b3ff; font-size: 10px; max-width: 160px; }
+
+    .expand-btn {
+      cursor: pointer;
+      color: #ffff99;
+      font-size: 11px;
+      background: none;
+      border: none;
+      padding: 0;
+      font-family: inherit;
+    }
+    .expand-btn:hover { text-decoration: underline; }
+
+    /* ── EXPANDED ROW ── */
+    .detail-row td {
+      background: rgba(0, 30, 80, 0.6) !important;
+      padding: 0;
+    }
+
+    .detail-box {
+      padding: 10px 14px;
+      border-top: 2px groove #6fbaff;
+      font-size: 11px;
+      line-height: 1.6;
+    }
+
+    .detail-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 4px 16px;
+    }
+
+    .detail-item { color: #c8e8ff; }
+    .detail-key { color: #aee3ff; font-weight: bold; }
+
+    /* ── PAGINATION ── */
+    #pagination {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 12px;
+      flex-wrap: wrap;
+    }
+
+    .page-info { color: #aee3ff; font-size: 12px; }
+
+    /* ── STATUS MESSAGES ── */
+    #status-msg {
+      padding: 12px;
+      margin-bottom: 12px;
+      border: 2px groove #6fbaff;
+      background: rgba(0,0,0,0.2);
+      color: #ffff99;
+      text-align: center;
+      display: none;
+    }
+
+    /* ── LOADING SPINNER ── */
+    #loading-bar {
+      text-align: center;
+      padding: 40px;
+      color: #aee3ff;
+      display: none;
+    }
+
+    .blink { animation: blink 1s steps(2, start) infinite; }
+
+    @keyframes blink {
+      0%, 49% { opacity: 1; }
+      50%, 100% { opacity: 0.25; }
+    }
+
+    /* ── DETAIL MODAL ── */
+    #detail-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      background: rgba(0,15,40,0.9);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    #detail-modal.open { display: flex; }
+
+    #detail-modal-inner {
+      max-width: 700px;
+      width: 100%;
+      max-height: 85vh;
+      overflow-y: auto;
+      border: 4px outset #99ccff;
+      background: linear-gradient(180deg, #0a2754, #051a40);
+      box-shadow: 0 0 28px rgba(0,200,255,0.55);
+    }
+
+    .modal-header {
+      background: linear-gradient(180deg, #0b2f66, #0a2754);
+      border-bottom: 3px ridge #6fbaff;
+      padding: 10px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .modal-title { color: #aee3ff; font-weight: bold; }
+    .modal-close { color: #ffff99; cursor: pointer; font-size: 20px; font-weight: bold; border: 1px outset #b7dcff; padding: 0 5px; background: none; font-family: inherit; }
+
+    #detail-modal-body {
+      padding: 14px 16px;
+      font-size: 12px;
+      line-height: 1.7;
+    }
+
+    #detail-modal-body .row-group {
+      margin-bottom: 12px;
+      border: 2px groove #6fbaff;
+      padding: 8px;
+      background: rgba(0,0,0,0.2);
+    }
+
+    #detail-modal-body .group-title {
+      color: #ffff99;
+      font-weight: bold;
+      font-size: 11px;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+      border-bottom: 1px solid rgba(111,186,255,0.3);
+      padding-bottom: 4px;
+    }
+
+    #detail-modal-body .kv-pair {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 2px;
+    }
+
+    #detail-modal-body .kv-key { color: #aee3ff; min-width: 160px; flex-shrink: 0; }
+    #detail-modal-body .kv-val { color: #e7f3ff; word-break: break-all; font-family: monospace; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 680px) {
+      .dash-title { font-size: 13px; }
+      #stats-bar { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="tile-overlay" aria-hidden="true"></div>
+
+<!-- HEADER -->
+<div id="dash-header">
+  <div class="dash-title">
+    <span>&#9632;</span> PROJECT SILHOUETTE — INTELLIGENCE DASHBOARD
+    <span class="blink" style="font-size:10px;margin-left:8px;color:#ff4444;">LIVE</span>
+  </div>
+  <div class="header-btns">
+    <button class="btn" onclick="refreshData()">&#8635; Refresh</button>
+    <button class="btn btn-success" onclick="exportCSV()">&#11015; Export CSV</button>
+    <button class="btn btn-danger" onclick="silLogout()">&#128274; Logout</button>
+  </div>
+</div>
+
+<!-- MAIN CONTENT -->
+<div id="dash-body">
+
+  <!-- AUTH GATE (shown while checking auth) -->
+  <div id="auth-gate">
+    <div id="auth-gate-box">
+      <div style="font-size:40px;">&#128274;</div>
+      <div style="color:#aee3ff;margin:10px 0;font-size:14px;">Verifying credentials…</div>
+      <div class="blink" style="color:#ffff99;font-size:12px;">AUTHENTICATING</div>
+    </div>
+  </div>
+
+  <!-- DASHBOARD CONTENT (hidden until auth passes) -->
+  <div id="dash-content" style="display:none;">
+
+    <!-- STATS BAR -->
+    <div id="stats-bar">
+      <div class="stat-card">
+        <div class="stat-label">Total Visits</div>
+        <div class="stat-value" id="stat-total">–</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Unique Fingerprints</div>
+        <div class="stat-value" id="stat-unique">–</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Today</div>
+        <div class="stat-value" id="stat-today">–</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Last Visit</div>
+        <div class="stat-value" id="stat-last" style="font-size:13px;">–</div>
+      </div>
+    </div>
+
+    <!-- STATUS MESSAGE -->
+    <div id="status-msg"></div>
+
+    <!-- LOADING BAR -->
+    <div id="loading-bar">
+      <span class="blink">&#9632;</span> Loading intelligence data…
+    </div>
+
+    <!-- CONTROLS -->
+    <div id="controls">
+      <input type="text" id="search-input" placeholder="&#128269; Search by IP, fingerprint, browser, OS…" oninput="filterTable()">
+      <select id="filter-browser" onchange="filterTable()">
+        <option value="">All Browsers</option>
+      </select>
+      <select id="filter-os" onchange="filterTable()">
+        <option value="">All OS</option>
+      </select>
+      <span class="page-info" id="filter-count"></span>
+    </div>
+
+    <!-- TABLE -->
+    <div id="table-wrap">
+      <table id="data-table">
+        <thead>
+          <tr>
+            <th onclick="sortBy('timestamp')" title="Sort by time">Time <span class="sort-icon" id="sort-timestamp"></span></th>
+            <th onclick="sortBy('ip')" title="Sort by IP">IP <span class="sort-icon" id="sort-ip"></span></th>
+            <th onclick="sortBy('fingerprint')" title="Sort by fingerprint">Fingerprint <span class="sort-icon" id="sort-fingerprint"></span></th>
+            <th onclick="sortBy('browser')" title="Sort by browser">Browser <span class="sort-icon" id="sort-browser"></span></th>
+            <th onclick="sortBy('os')" title="Sort by OS">OS <span class="sort-icon" id="sort-os"></span></th>
+            <th onclick="sortBy('timezone')" title="Sort by timezone">Timezone <span class="sort-icon" id="sort-timezone"></span></th>
+            <th onclick="sortBy('webgl')" title="Sort by GPU">GPU <span class="sort-icon" id="sort-webgl"></span></th>
+            <th>Adblock</th>
+            <th>Incognito</th>
+            <th>Details</th>
+          </tr>
+        </thead>
+        <tbody id="table-body">
+          <tr><td colspan="10" style="text-align:center;padding:20px;color:#aee3ff;">No data loaded.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- PAGINATION -->
+    <div id="pagination">
+      <button class="btn" id="btn-prev" onclick="changePage(-1)">&#9664; Prev</button>
+      <span class="page-info" id="page-info">Page 1 of 1</span>
+      <button class="btn" id="btn-next" onclick="changePage(1)">Next &#9654;</button>
+    </div>
+
+  </div><!-- /#dash-content -->
+
+</div><!-- /#dash-body -->
+
+<!-- DETAIL MODAL -->
+<div id="detail-modal">
+  <div id="detail-modal-inner">
+    <div class="modal-header">
+      <span class="modal-title" id="detail-modal-title">VISITOR RECORD</span>
+      <button class="modal-close" onclick="closeDetail()">&times;</button>
+    </div>
+    <div id="detail-modal-body"></div>
+  </div>
+</div>
+
+<!-- AUTH SCRIPT -->
+<script src="auth.js"></script>
+
+<!-- DASHBOARD LOGIC -->
+<script>
+(function () {
+  'use strict';
+
+  var DATA_ENDPOINT = 'https://YOUR_WORKER.YOUR_SUBDOMAIN.workers.dev/api/data';
+
+  var allRows      = [];
+  var filteredRows = [];
+  var currentPage  = 1;
+  var pageSize     = 25;
+  var sortField    = 'timestamp';
+  var sortDir      = -1; // -1 = desc, 1 = asc
+
+  // ──────────────────── INIT ────────────────────
+  function init() {
+    // Auth gate: check JWT
+    var token = window.silRequireAuth ? window.silRequireAuth() : null;
+    if (!token) return; // silRequireAuth redirects if invalid
+
+    // Show dashboard content
+    document.getElementById('auth-gate').style.display   = 'none';
+    document.getElementById('dash-content').style.display = 'block';
+
+    loadData(token);
+  }
+
+  // ──────────────────── LOAD DATA ────────────────────
+  function loadData(token) {
+    showLoading(true);
+    showStatus('');
+
+    fetch(DATA_ENDPOINT, {
+      method:  'GET',
+      headers: { 'Authorization': 'Bearer ' + token },
+      mode:    'cors',
+      credentials: 'omit'
+    })
+    .then(function (res) {
+      if (res.status === 401) {
+        window.silLogout();
+        return null;
+      }
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      return res.json();
+    })
+    .then(function (data) {
+      showLoading(false);
+      if (!data) return;
+      allRows = Array.isArray(data.entries) ? data.entries : [];
+      buildFilters();
+      applyFilter();
+      updateStats();
+    })
+    .catch(function (err) {
+      showLoading(false);
+      showStatus('Error loading data: ' + err.message + ' — check backend URL and JWT.', '#ff7777');
+    });
+  }
+
+  window.refreshData = function () {
+    var token = window.silGetToken ? window.silGetToken() : null;
+    if (token) loadData(token);
+  };
+
+  // ──────────────────── STATS ────────────────────
+  function updateStats() {
+    var total  = allRows.length;
+    var unique = (function () {
+      var seen = {};
+      allRows.forEach(function (r) { seen[r.fingerprint || ''] = 1; });
+      return Object.keys(seen).length;
+    })();
+
+    var todayPrefix = new Date().toISOString().slice(0, 10);
+    var today = allRows.filter(function (r) {
+      return (r.timestamp || '').startsWith(todayPrefix);
+    }).length;
+
+    var last = allRows.length
+      ? formatTime(allRows.slice().sort(function(a,b){ return b.timestamp < a.timestamp ? -1 : 1; })[0].timestamp)
+      : '—';
+
+    setText('stat-total',  total);
+    setText('stat-unique', unique);
+    setText('stat-today',  today);
+    setText('stat-last',   last);
+  }
+
+  // ──────────────────── FILTERS ────────────────────
+  function buildFilters() {
+    var browsers = {}, oses = {};
+    allRows.forEach(function (r) {
+      if (r.browser) browsers[r.browser.split(' ')[0]] = 1;
+      if (r.os)      oses[r.os.split(' ')[0]]          = 1;
+    });
+    populateSelect('filter-browser', Object.keys(browsers).sort());
+    populateSelect('filter-os',      Object.keys(oses).sort());
+  }
+
+  function populateSelect(id, values) {
+    var sel = document.getElementById(id);
+    if (!sel) return;
+    var first = sel.options[0];
+    sel.innerHTML = '';
+    sel.appendChild(first);
+    values.forEach(function (v) {
+      var opt = document.createElement('option');
+      opt.value = v; opt.textContent = v;
+      sel.appendChild(opt);
+    });
+  }
+
+  window.filterTable = function () {
+    var q  = (document.getElementById('search-input').value || '').toLowerCase();
+    var fb = (document.getElementById('filter-browser').value || '').toLowerCase();
+    var fo = (document.getElementById('filter-os').value || '').toLowerCase();
+
+    filteredRows = allRows.filter(function (r) {
+      if (fb && !(r.browser || '').toLowerCase().startsWith(fb)) return false;
+      if (fo && !(r.os || '').toLowerCase().startsWith(fo)) return false;
+      if (q) {
+        var haystack = [r.ip, r.fingerprint, r.browser, r.os, r.timezone, r.referrer].join(' ').toLowerCase();
+        if (haystack.indexOf(q) === -1) return false;
+      }
+      return true;
+    });
+
+    currentPage = 1;
+    sortAndRender();
+    setText('filter-count', 'Showing ' + filteredRows.length + ' of ' + allRows.length);
+  };
+
+  function applyFilter() {
+    filteredRows = allRows.slice();
+    sortAndRender();
+    setText('filter-count', 'Showing ' + filteredRows.length + ' of ' + allRows.length);
+  }
+
+  // ──────────────────── SORT ────────────────────
+  window.sortBy = function (field) {
+    if (sortField === field) { sortDir = -sortDir; }
+    else { sortField = field; sortDir = -1; }
+    currentPage = 1;
+    sortAndRender();
+  };
+
+  function sortAndRender() {
+    // Update sort icons
+    ['timestamp','ip','fingerprint','browser','os','timezone','webgl'].forEach(function (f) {
+      var el = document.getElementById('sort-' + f);
+      if (el) el.textContent = f === sortField ? (sortDir === -1 ? '▼' : '▲') : '';
+    });
+
+    filteredRows.sort(function (a, b) {
+      var av = getSortVal(a, sortField);
+      var bv = getSortVal(b, sortField);
+      if (av < bv) return sortDir;
+      if (av > bv) return -sortDir;
+      return 0;
+    });
+
+    renderTable();
+  }
+
+  function getSortVal(row, field) {
+    switch (field) {
+      case 'timestamp':  return row.timestamp || '';
+      case 'ip':         return row.ip || '';
+      case 'fingerprint':return row.fingerprint || '';
+      case 'browser':    return row.browser || '';
+      case 'os':         return row.os || '';
+      case 'timezone':   return row.timezone || '';
+      case 'webgl':      return (row.webgl && row.webgl.renderer) || '';
+      default:           return '';
+    }
+  }
+
+  // ──────────────────── RENDER ────────────────────
+  function renderTable() {
+    var tbody  = document.getElementById('table-body');
+    var total  = filteredRows.length;
+    var pages  = Math.max(1, Math.ceil(total / pageSize));
+    currentPage = Math.min(currentPage, pages);
+
+    var start = (currentPage - 1) * pageSize;
+    var slice = filteredRows.slice(start, start + pageSize);
+
+    if (!slice.length) {
+      tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;padding:20px;color:#aee3ff;">No records found.</td></tr>';
+    } else {
+      tbody.innerHTML = '';
+      slice.forEach(function (row, idx) {
+        var tr = document.createElement('tr');
+        tr.innerHTML = [
+          '<td class="time-cell">' + esc(formatTime(row.timestamp)) + '</td>',
+          '<td class="ip-cell">' + esc(row.ip || '—') + '</td>',
+          '<td class="fp-cell" title="' + esc(row.fingerprint || '') + '">' + esc((row.fingerprint || '—').slice(0, 8) + '…') + '</td>',
+          '<td class="browser-cell">' + esc(row.browser || '—') + '</td>',
+          '<td class="os-cell">' + esc(row.os || '—') + '</td>',
+          '<td>' + esc(row.timezone || '—') + '</td>',
+          '<td class="gpu-cell" title="' + esc((row.webgl && row.webgl.renderer) || '') + '">' + esc(truncate((row.webgl && row.webgl.renderer) || '—', 25)) + '</td>',
+          '<td>' + (row.adblockDetected ? '<span style="color:#ff9999;">Yes</span>' : '<span style="color:#99ff99;">No</span>') + '</td>',
+          '<td>' + formatIncognito(row.incognitoMode) + '</td>',
+          '<td><button class="expand-btn" onclick="openDetail(' + (start + idx) + ')">&#128269; View</button></td>'
+        ].join('');
+        tbody.appendChild(tr);
+      });
+    }
+
+    setText('page-info', 'Page ' + currentPage + ' of ' + pages + ' (' + total + ' records)');
+    document.getElementById('btn-prev').disabled = currentPage <= 1;
+    document.getElementById('btn-next').disabled = currentPage >= pages;
+  }
+
+  function formatIncognito(val) {
+    if (val === 'likely')   return '<span style="color:#ffaa00;">Likely</span>';
+    if (val === 'unlikely') return '<span style="color:#99ff99;">No</span>';
+    return '<span style="color:#aaaaaa;">?</span>';
+  }
+
+  // ──────────────────── PAGINATION ────────────────────
+  window.changePage = function (dir) {
+    currentPage += dir;
+    renderTable();
+    window.scrollTo(0, 0);
+  };
+
+  // ──────────────────── DETAIL MODAL ────────────────────
+  window.openDetail = function (idx) {
+    var row = filteredRows[idx];
+    if (!row) return;
+
+    var modal = document.getElementById('detail-modal');
+    var body  = document.getElementById('detail-modal-body');
+
+    setText('detail-modal-title', 'VISITOR RECORD — ' + formatTime(row.timestamp));
+
+    var groups = [
+      { title: 'Identity', fields: [
+        ['Fingerprint', row.fingerprint],
+        ['IP Address',  row.ip],
+        ['Timestamp',   row.timestamp],
+        ['Page',        row.page],
+        ['Referrer',    row.referrer],
+      ]},
+      { title: 'Browser & OS', fields: [
+        ['Browser',     row.browser],
+        ['OS',          row.os],
+        ['Platform',    row.platform],
+        ['User Agent',  row.userAgent],
+        ['Language',    row.locale],
+        ['Languages',   Array.isArray(row.languages) ? row.languages.join(', ') : row.languages],
+        ['DNT',         row.doNotTrack],
+        ['Cookies',     row.cookiesEnabled],
+        ['PDF Viewer',  row.pdfViewer],
+        ['Vendor',      row.vendor],
+      ]},
+      { title: 'Screen & Display', fields: [
+        ['Resolution',      ((row.screen && row.screen.width) || '?') + ' × ' + ((row.screen && row.screen.height) || '?')],
+        ['Available Area',  ((row.screen && row.screen.availWidth) || '?') + ' × ' + ((row.screen && row.screen.availHeight) || '?')],
+        ['Color Depth',     row.screen && row.screen.colorDepth],
+        ['Pixel Ratio',     row.screen && row.screen.devicePixelRatio],
+        ['Orientation',     row.screen && row.screen.orientation],
+      ]},
+      { title: 'Hardware', fields: [
+        ['GPU Renderer',    row.webgl && row.webgl.renderer],
+        ['GPU Vendor',      row.webgl && row.webgl.vendor],
+        ['Device Memory',   (row.deviceMemory || '?') + ' GB'],
+        ['CPU Cores',       row.hardwareConcurrency],
+        ['Touch Points',    row.touchPoints],
+      ]},
+      { title: 'Network', fields: [
+        ['Connection Type', row.connection && row.connection.type],
+        ['Downlink',        row.connection && (row.connection.downlink + ' Mbps')],
+        ['RTT',             row.connection && (row.connection.rtt + ' ms')],
+        ['Save Data',       row.connection && row.connection.saveData],
+        ['WebRTC Local IP', row.webrtcIP],
+      ]},
+      { title: 'Device & Privacy', fields: [
+        ['Battery Level',   row.battery && (Math.round((row.battery.level || 0) * 100) + '%')],
+        ['Charging',        row.battery && row.battery.charging],
+        ['Timezone',        row.timezone],
+        ['Adblock',         row.adblockDetected ? 'Detected' : 'Not detected'],
+        ['Incognito',       row.incognitoMode],
+      ]},
+    ];
+
+    body.innerHTML = groups.map(function (g) {
+      return '<div class="row-group">' +
+        '<div class="group-title">' + esc(g.title) + '</div>' +
+        g.fields.map(function (f) {
+          return '<div class="kv-pair">' +
+            '<span class="kv-key">' + esc(f[0]) + '</span>' +
+            '<span class="kv-val">' + esc(String(f[1] !== null && f[1] !== undefined ? f[1] : '—')) + '</span>' +
+          '</div>';
+        }).join('') +
+      '</div>';
+    }).join('');
+
+    modal.classList.add('open');
+  };
+
+  window.closeDetail = function () {
+    document.getElementById('detail-modal').classList.remove('open');
+  };
+
+  document.getElementById('detail-modal').addEventListener('click', function (e) {
+    if (e.target === this) closeDetail();
+  });
+
+  // ──────────────────── CSV EXPORT ────────────────────
+  window.exportCSV = function () {
+    if (!filteredRows.length) { showStatus('No data to export.', '#ffaa00'); return; }
+
+    var headers = ['timestamp','ip','fingerprint','browser','os','platform','locale','timezone','screen_w','screen_h','color_depth','pixel_ratio','orientation','gpu_renderer','gpu_vendor','battery_level','charging','adblock','incognito','connection_type','downlink','rtt','webrtc_ip','device_memory','cpu_cores','touch_points','dnt','cookies','referrer','page','user_agent'];
+
+    var rows = filteredRows.map(function (r) {
+      return [
+        r.timestamp, r.ip, r.fingerprint,
+        r.browser, r.os, r.platform, r.locale, r.timezone,
+        r.screen && r.screen.width, r.screen && r.screen.height,
+        r.screen && r.screen.colorDepth, r.screen && r.screen.devicePixelRatio,
+        r.screen && r.screen.orientation,
+        r.webgl && r.webgl.renderer, r.webgl && r.webgl.vendor,
+        r.battery && r.battery.level, r.battery && r.battery.charging,
+        r.adblockDetected, r.incognitoMode,
+        r.connection && r.connection.type, r.connection && r.connection.downlink,
+        r.connection && r.connection.rtt,
+        r.webrtcIP, r.deviceMemory, r.hardwareConcurrency, r.touchPoints,
+        r.doNotTrack, r.cookiesEnabled, r.referrer, r.page, r.userAgent
+      ].map(function (v) {
+        var s = String(v !== null && v !== undefined ? v : '');
+        return '"' + s.replace(/"/g, '""') + '"';
+      }).join(',');
+    });
+
+    var csv = [headers.join(',')].concat(rows).join('\n');
+    var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    var url  = URL.createObjectURL(blob);
+    var a    = document.createElement('a');
+    a.href   = url;
+    a.download = 'silhouette-' + new Date().toISOString().slice(0,10) + '.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  // ──────────────────── HELPERS ────────────────────
+  function esc(s) {
+    return String(s || '').replace(/&/g,'&').replace(/</g,'<').replace(/>/g,'>').replace(/"/g,'"');
+  }
+
+  function truncate(s, n) { return s.length > n ? s.slice(0, n) + '…' : s; }
+
+  function setText(id, val) {
+    var el = document.getElementById(id);
+    if (el) el.textContent = val;
+  }
+
+  function formatTime(iso) {
+    if (!iso) return '—';
+    try {
+      var d = new Date(iso);
+      return d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+    } catch (e) { return iso; }
+  }
+
+  function showLoading(show) {
+    document.getElementById('loading-bar').style.display = show ? 'block' : 'none';
+    document.getElementById('table-wrap').style.opacity  = show ? '0.4' : '1';
+  }
+
+  function showStatus(msg, color) {
+    var el = document.getElementById('status-msg');
+    if (!el) return;
+    if (!msg) { el.style.display = 'none'; return; }
+    el.textContent = msg;
+    el.style.color = color || '#ffff99';
+    el.style.display = 'block';
+  }
+
+  // ──────────────────── BOOT ────────────────────
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+
+})();
+</script>
+
+</body>
+</html>

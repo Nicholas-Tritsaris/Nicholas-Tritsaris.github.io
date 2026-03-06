@@ -1,0 +1,50 @@
+# ██████ PROJECT SILHOUETTE — Cloudflare Workers Config ██████
+# wrangler.toml
+
+name = "silhouette-tracker"
+main = "src/index.js"
+compatibility_date = "2024-01-01"
+compatibility_flags = ["nodejs_compat"]
+
+# Account config — fill in your Cloudflare account ID
+# Found at: https://dash.cloudflare.com → right sidebar
+account_id = "YOUR_CLOUDFLARE_ACCOUNT_ID"
+
+# Workers free tier: 100,000 requests/day
+# Paid plan: $5/month for 10 million requests
+
+[vars]
+# Non-secret configuration (safe to commit)
+NOTE_SERVICE = "google-tasks"   # Options: google-tasks | evernote | onenote | firestore
+ALLOWED_ORIGIN_1 = "https://blueboop.is-a.dev"
+ALLOWED_ORIGIN_2 = "https://nicholas-tritsaris.github.io"
+LOG_LEVEL = "error"             # Options: debug | info | warn | error
+
+# ─────────────────────────────────────────────────────────────────
+# SECRETS — DO NOT put real values here. Use wrangler CLI:
+#
+#   wrangler secret put ADMIN_USERNAME
+#   wrangler secret put ADMIN_PASSWORD_HASH
+#   wrangler secret put JWT_SECRET
+#   wrangler secret put GOOGLE_CLIENT_ID
+#   wrangler secret put GOOGLE_CLIENT_SECRET
+#   wrangler secret put GOOGLE_REFRESH_TOKEN
+#   wrangler secret put GOOGLE_TASKLIST_ID
+#   wrangler secret put EVERNOTE_DEV_TOKEN
+#   wrangler secret put EVERNOTE_NOTEBOOK_GUID
+#   wrangler secret put MS_CLIENT_ID
+#   wrangler secret put MS_CLIENT_SECRET
+#   wrangler secret put MS_REFRESH_TOKEN
+#   wrangler secret put MS_SECTION_ID
+#   wrangler secret put MS_TENANT_ID
+#   wrangler secret put FIREBASE_PROJECT_ID
+#   wrangler secret put FIREBASE_CLIENT_EMAIL
+#   wrangler secret put FIREBASE_PRIVATE_KEY
+# ─────────────────────────────────────────────────────────────────
+
+# Optional: KV namespace for caching access tokens
+# Uncomment after creating the namespace:
+#   wrangler kv:namespace create "TOKEN_CACHE"
+# [[kv_namespaces]]
+# binding = "TOKEN_CACHE"
+# id = "YOUR_KV_NAMESPACE_ID"

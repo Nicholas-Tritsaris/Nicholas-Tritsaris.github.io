@@ -1,0 +1,15 @@
+{
+  "name": "silhouette-tracker-vercel",
+  "version": "1.0.0",
+  "description": "PROJECT SILHOUETTE — Vercel Serverless Functions backend",
+  "scripts": {
+    "dev":    "vercel dev",
+    "deploy": "vercel --prod"
+  },
+  "dependencies": {
+    "jsonwebtoken": "^9.0.0"
+  },
+  "devDependencies": {
+    "vercel": "^33.0.0"
+  }
+}

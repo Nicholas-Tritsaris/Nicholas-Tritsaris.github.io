@@ -1,0 +1,25 @@
+{
+  "name": "silhouette-tracker-express",
+  "version": "1.0.0",
+  "description": "PROJECT SILHOUETTE — Node.js Express backend (VPS)",
+  "main": "src/server.js",
+  "scripts": {
+    "start":    "node src/server.js",
+    "dev":      "nodemon src/server.js",
+    "pm2":      "pm2 start src/server.js --name silhouette-tracker"
+  },
+  "dependencies": {
+    "dotenv":           "^16.0.0",
+    "express":          "^4.18.0",
+    "express-rate-limit": "^7.0.0",
+    "jsonwebtoken":     "^9.0.0",
+    "helmet":           "^7.0.0",
+    "cors":             "^2.8.5"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

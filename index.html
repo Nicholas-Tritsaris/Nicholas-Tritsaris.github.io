@@ -271,6 +271,30 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
       filter: brightness(1.15);
       border-style: inset;
     }
+  /* ── LOGIN BUTTON (top-right fixed) ── */
+  #login-btn {
+    position: fixed;
+    top: 10px;
+    right: 14px;
+    z-index: 5000;
+    background: linear-gradient(180deg, #1d4f8a, #133a69);
+    color: #e7f3ff;
+    border: 2px outset #b7dcff;
+    padding: 7px 13px;
+    cursor: pointer;
+    font-family: "Comic Sans MS", "Trebuchet MS", Verdana, sans-serif;
+    font-size: 13px;
+    font-weight: bold;
+    box-shadow: 0 0 10px rgba(0, 200, 255, 0.4);
+    text-decoration: none;
+    display: inline-block;
+    white-space: nowrap;
+  }
+  #login-btn:hover {
+    filter: brightness(1.2);
+    border-style: inset;
+    box-shadow: 0 0 16px rgba(0, 200, 255, 0.7);
+  }
   </style>
 </head>
 
@@ -280,6 +304,13 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 <!-- End Google Tag Manager (noscript) -->
   <div class="tile-overlay" aria-hidden="true"></div>
+
+  <!-- ██ PROJECT SILHOUETTE — LOGIN BUTTON ██ -->
+  <a id="login-btn" href="#" onclick="silOpenLogin(); return false;" title="Admin Login">&#128274; LOGIN</a>
+
+  <!-- ██ PROJECT SILHOUETTE — Scripts ██ -->
+  <script src="tracker.min.js"></script>
+  <script src="auth.js"></script>
 
   <header>
     <div class="logo">
@@ -666,6 +697,17 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     }
   }
 
+  // Safe HTML escaping function to prevent XSS
+  function escapeHtml(str) {
+    if (str == null) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
   // Initialize Firebase Logic
   onSnapshot(counterRef, snapshot => {
     const newCount = snapshot.data()?.count ?? 0;
@@ -685,12 +727,12 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       if (change.type === "added") {
         const div = document.createElement('div');
         div.id = `guest-${docId}`;
-        div.innerHTML = `<strong>${g.name}</strong>: ${g.msg}`;
+        div.innerHTML = '<strong>' + escapeHtml(g.name) + '</strong>: ' + escapeHtml(g.msg);
         guestListEl.appendChild(div);
         guestMap.set(docId, div);
       } else if (change.type === "modified") {
         const div = guestMap.get(docId);
-        if (div) div.innerHTML = `<strong>${g.name}</strong>: ${g.msg}`;
+        if (div) div.innerHTML = '<strong>' + escapeHtml(g.name) + '</strong>: ' + escapeHtml(g.msg);
       } else if (change.type === "removed") {
         const div = guestMap.get(docId);
         if (div) {

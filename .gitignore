@@ -1,0 +1,26 @@
+# ── Node.js dependencies ──
+node_modules/
+npm-debug.log*
+
+# ── Environment variables ── NEVER COMMIT THESE
+.env
+.env.*
+!.env.example
+
+# ── Project Silhouette secrets ── NEVER COMMIT THESE
+auth/credentials.md
+auth/credentials.txt
+tracking-backend/**/.env
+tracking-backend/**/node_modules/
+
+# ── Build artifacts ──
+dist/
+build/
+.wrangler/
+
+# ── OS / Editor ──
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+.vscode/settings.json
