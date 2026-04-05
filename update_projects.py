@@ -2,25 +2,61 @@ import urllib.request
 import json
 import re
 import os
+import base64
 from datetime import datetime
 
 USERNAME = "Nicholas-Tritsaris"
 REPO_NAME = "Nicholas-Tritsaris.github.io"
 
-def fetch_repos():
-    url = f"https://api.github.com/users/{USERNAME}/repos?sort=created&direction=desc&per_page=100"
+def fetch_json(url):
     req = urllib.request.Request(url)
     req.add_header('User-Agent', 'Python-Urllib')
     token = os.environ.get("GITHUB_TOKEN")
     if token:
         req.add_header('Authorization', f'token {token}')
-
     with urllib.request.urlopen(req) as response:
         return json.loads(response.read().decode())
 
+def fetch_repos():
+    url = f"https://api.github.com/users/{USERNAME}/repos?sort=created&direction=desc&per_page=100"
+    return fetch_json(url)
+
+def get_enhanced_description(repo):
+    """
+    Attempts to find a better description for the repository.
+    1. Check if the repo has a description in the API.
+    2. If not, try to fetch the README and extract the first non-header paragraph.
+    3. Specifically check for a README in a subdirectory with the same name as the repo (e.g., WMLUP/README.md).
+    """
+    api_desc = repo.get('description')
+    if api_desc and api_desc.strip():
+        return api_desc
+
+    repo_name = repo['name']
+    readme_urls = [
+        f"https://api.github.com/repos/{USERNAME}/{repo_name}/contents/README.md",
+        f"https://api.github.com/repos/{USERNAME}/{repo_name}/contents/{repo_name}/README.md"
+    ]
+
+    for url in readme_urls:
+        try:
+            content_data = fetch_json(url)
+            if 'content' in content_data:
+                readme_text = base64.b64decode(content_data['content']).decode('utf-8')
+                # Find the first paragraph that isn't a header
+                lines = readme_text.split('\n')
+                for line in lines:
+                    line = line.strip()
+                    if line and not line.startswith('#'):
+                        return line
+        except Exception:
+            continue
+
+    return "A cool project by Nicholas."
+
 def format_card(repo):
     name = repo['name']
-    description = repo['description'] or "A cool project by Nicholas."
+    description = get_enhanced_description(repo)
     display_name = name.replace("-", " ").replace("_", " ").title()
 
     homepage = repo['homepage']
@@ -52,7 +88,7 @@ def generate_rss(repos):
     rss_items = []
     for repo in repos:
         name = repo['name']
-        description = repo['description'] or "A cool project by Nicholas."
+        description = get_enhanced_description(repo)
         display_name = name.replace("-", " ").replace("_", " ").title()
 
         homepage = repo['homepage']
