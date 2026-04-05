@@ -3,6 +3,7 @@ import json
 import re
 import os
 import base64
+import html
 from datetime import datetime
 
 USERNAME = "Nicholas-Tritsaris"
@@ -43,11 +44,11 @@ def get_enhanced_description(repo):
             content_data = fetch_json(url)
             if 'content' in content_data:
                 readme_text = base64.b64decode(content_data['content']).decode('utf-8')
-                # Find the first paragraph that isn't a header
+                # Find the first paragraph that isn't a header, HTML tag, or separator
                 lines = readme_text.split('\n')
                 for line in lines:
                     line = line.strip()
-                    if line and not line.startswith('#'):
+                    if line and not (line.startswith('#') or line.startswith('<') or line.startswith('---')):
                         return line
         except Exception:
             continue
@@ -56,7 +57,7 @@ def get_enhanced_description(repo):
 
 def format_card(repo):
     name = repo['name']
-    description = get_enhanced_description(repo)
+    description = html.escape(get_enhanced_description(repo), quote=False)
     display_name = name.replace("-", " ").replace("_", " ").title()
 
     homepage = repo['homepage']
@@ -88,7 +89,7 @@ def generate_rss(repos):
     rss_items = []
     for repo in repos:
         name = repo['name']
-        description = get_enhanced_description(repo)
+        description = html.escape(get_enhanced_description(repo))
         display_name = name.replace("-", " ").replace("_", " ").title()
 
         homepage = repo['homepage']
