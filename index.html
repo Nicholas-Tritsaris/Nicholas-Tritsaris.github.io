@@ -295,6 +295,29 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
     border-style: inset;
     box-shadow: 0 0 16px rgba(0, 200, 255, 0.7);
   }
+
+  /* ── RSS BUTTON (top-left fixed) ── */
+  #rss-btn {
+    position: fixed;
+    top: 10px;
+    left: 14px;
+    z-index: 5000;
+    display: inline-block;
+    border: 2px outset #b7dcff;
+    box-shadow: 0 0 10px rgba(0, 200, 255, 0.4);
+    line-height: 0;
+  }
+  #rss-btn img {
+    width: 88px;
+    height: 31px;
+    image-rendering: pixelated;
+    display: block;
+  }
+  #rss-btn:hover {
+    filter: brightness(1.2);
+    border-style: inset;
+    box-shadow: 0 0 16px rgba(0, 200, 255, 0.7);
+  }
   </style>
 </head>
 
@@ -304,6 +327,11 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 <!-- End Google Tag Manager (noscript) -->
   <div class="tile-overlay" aria-hidden="true"></div>
+
+  <!-- ██ RSS BUTTON ██ -->
+  <a id="rss-btn" href="rss.xml" title="RSS Feed">
+    <img src="https://cyber.dabamos.de/88x31/rss.gif" alt="RSS Feed">
+  </a>
 
   <!-- ██ PROJECT SILHOUETTE — LOGIN BUTTON ██ -->
   <a id="login-btn" href="#" onclick="silOpenLogin(); return false;" title="Admin Login">&#128274; LOGIN</a>
