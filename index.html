@@ -295,6 +295,29 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
     border-style: inset;
     box-shadow: 0 0 16px rgba(0, 200, 255, 0.7);
   }
+
+  /* ── RSS BUTTON (top-left fixed) ── */
+  #rss-btn {
+    position: fixed;
+    top: 10px;
+    left: 14px;
+    z-index: 5000;
+    display: inline-block;
+    border: 2px outset #b7dcff;
+    box-shadow: 0 0 10px rgba(0, 200, 255, 0.4);
+    line-height: 0;
+  }
+  #rss-btn img {
+    width: 88px;
+    height: 31px;
+    image-rendering: pixelated;
+    display: block;
+  }
+  #rss-btn:hover {
+    filter: brightness(1.2);
+    border-style: inset;
+    box-shadow: 0 0 16px rgba(0, 200, 255, 0.7);
+  }
   </style>
 </head>
 
@@ -304,6 +327,11 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 <!-- End Google Tag Manager (noscript) -->
   <div class="tile-overlay" aria-hidden="true"></div>
+
+  <!-- ██ RSS BUTTON ██ -->
+  <a id="rss-btn" href="rss.xml" title="RSS Feed">
+    <img src="https://cyber.dabamos.de/88x31/rss.gif" alt="RSS Feed">
+  </a>
 
   <!-- ██ PROJECT SILHOUETTE — LOGIN BUTTON ██ -->
   <a id="login-btn" href="#" onclick="silOpenLogin(); return false;" title="Admin Login">&#128274; LOGIN</a>
@@ -361,12 +389,12 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           <!-- PROJECTS_START -->
           <div class="card">
             <h4>Wmlup</h4>
-            <p>A cool project by Nicholas.</p>
+            <p>This is the main hub for the Windows Mobile Legacy Update Platform project. It serves as a central portal linking to the research repositories for various legacy Windows Mobile platforms.</p>
             <p><a href="https://blueboop.is-a.dev/WMLUP/WMLUP/index.html" target="_blank" rel="noopener">Explore Wmlup</a></p>
           </div>
           <div class="card">
             <h4>Drone Helmet</h4>
-            <p>A cool project by Nicholas.</p>
+            <p>A wearable, fully offline "drone" interface with hardware-enforced safety.</p>
             <p><a href="https://blueboop.is-a.dev/Drone-Helmet/website/index.html" target="_blank" rel="noopener">Explore Drone Helmet</a></p>
           </div>
           <div class="card">
@@ -376,17 +404,17 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           </div>
           <div class="card">
             <h4>My First Test</h4>
-            <p>A cool project by Nicholas.</p>
+            <p>Simple Hello World project.</p>
             <p><a href="https://blueboop.is-a.dev/my-first-test/" target="_blank" rel="noopener">Explore My First Test</a></p>
           </div>
           <div class="card">
             <h4>Logs</h4>
-            <p>A cool project by Nicholas.</p>
+            <p>"# LOGs"</p>
             <p><a href="https://github.com/Nicholas-Tritsaris/LOGs" target="_blank" rel="noopener">View on GitHub</a></p>
           </div>
           <div class="card">
             <h4>Edubridge</h4>
-            <p>A cool project by Nicholas.</p>
+            <p>**EduBridge** — Connect. Learn. Grow.</p>
             <p><a href="https://blueboop.is-a.dev/EduBridge/Web/index.html" target="_blank" rel="noopener">Explore Edubridge</a></p>
           </div>
           <div class="card">
@@ -396,7 +424,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           </div>
           <div class="card">
             <h4>Whasos</h4>
-            <p>A cool project by Nicholas.</p>
+            <p>created: 2026-02-28T20:55:45-05:00</p>
             <p><a href="https://blueboop.is-a.dev/WHASOS/" target="_blank" rel="noopener">Explore Whasos</a></p>
           </div>
           <div class="card">
@@ -406,7 +434,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           </div>
           <div class="card">
             <h4>Wikimedia</h4>
-            <p>A cool project by Nicholas.</p>
+            <p>A Wikipedia-like page with the "blueboop" theme.</p>
             <p><a href="https://blueboop.is-a.dev/Wikimedia/" target="_blank" rel="noopener">Explore Wikimedia</a></p>
           </div>
           <div class="card">
@@ -436,7 +464,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           </div>
           <div class="card">
             <h4>Workspace</h4>
-            <p>A cool project by Nicholas.</p>
+            <p>Douyin Downloader</p>
             <p><a href="https://blueboop.is-a.dev/workspace/" target="_blank" rel="noopener">Explore Workspace</a></p>
           </div>
           <div class="card">

@@ -5,12 +5,54 @@
   <link>https://nicholas-tritsaris.github.io/</link>
   <description>Stay updated with the latest projects from Nicholas Tritsaris.</description>
   <language>en-us</language>
-  <lastBuildDate>Sat, 28 Feb 2026 07:24:18 GMT</lastBuildDate>
+  <lastBuildDate>Sun, 05 Apr 2026 15:14:50 GMT</lastBuildDate>
   <atom:link href="https://nicholas-tritsaris.github.io/rss.xml" rel="self" type="application/rss+xml" />
     <item>
-      <title>Whasos</title>
-      <link>https://github.com/Nicholas-Tritsaris/WHASOS</link>
+      <title>Wmlup</title>
+      <link>https://blueboop.is-a.dev/WMLUP/WMLUP/index.html</link>
+      <description>This is the main hub for the Windows Mobile Legacy Update Platform project. It serves as a central portal linking to the research repositories for various legacy Windows Mobile platforms.</description>
+      <pubDate>Sun, 05 Apr 2026 06:18:34 GMT</pubDate>
+      <guid isPermaLink="false">1201775741</guid>
+    </item>    <item>
+      <title>Drone Helmet</title>
+      <link>https://blueboop.is-a.dev/Drone-Helmet/website/index.html</link>
+      <description>A wearable, fully offline &quot;drone&quot; interface with hardware-enforced safety.</description>
+      <pubDate>Sun, 05 Apr 2026 00:50:23 GMT</pubDate>
+      <guid isPermaLink="false">1201648365</guid>
+    </item>    <item>
+      <title>Palm Cards</title>
+      <link>https://blueboop.is-a.dev/Palm-cards/</link>
       <description>A cool project by Nicholas.</description>
+      <pubDate>Fri, 27 Mar 2026 05:45:52 GMT</pubDate>
+      <guid isPermaLink="false">1193340538</guid>
+    </item>    <item>
+      <title>My First Test</title>
+      <link>https://blueboop.is-a.dev/my-first-test/</link>
+      <description>Simple Hello World project.</description>
+      <pubDate>Fri, 27 Mar 2026 05:20:34 GMT</pubDate>
+      <guid isPermaLink="false">1193325630</guid>
+    </item>    <item>
+      <title>Logs</title>
+      <link>https://github.com/Nicholas-Tritsaris/LOGs</link>
+      <description>&quot;# LOGs&quot;</description>
+      <pubDate>Wed, 18 Mar 2026 11:01:29 GMT</pubDate>
+      <guid isPermaLink="false">1185215987</guid>
+    </item>    <item>
+      <title>Edubridge</title>
+      <link>https://blueboop.is-a.dev/EduBridge/Web/index.html</link>
+      <description>**EduBridge** — Connect. Learn. Grow.</description>
+      <pubDate>Mon, 02 Mar 2026 22:47:38 GMT</pubDate>
+      <guid isPermaLink="false">1171130145</guid>
+    </item>    <item>
+      <title>Games1</title>
+      <link>https://blueboop.is-a.dev/Games1/</link>
+      <description>网页小游戏200款，代码开源，欢迎下载</description>
+      <pubDate>Mon, 02 Mar 2026 01:30:44 GMT</pubDate>
+      <guid isPermaLink="false">1170312496</guid>
+    </item>    <item>
+      <title>Whasos</title>
+      <link>https://blueboop.is-a.dev/WHASOS/</link>
+      <description>created: 2026-02-28T20:55:45-05:00</description>
       <pubDate>Wed, 25 Feb 2026 01:26:32 GMT</pubDate>
       <guid isPermaLink="false">1166203967</guid>
     </item>    <item>
@@ -21,8 +63,8 @@
       <guid isPermaLink="false">1165331413</guid>
     </item>    <item>
       <title>Wikimedia</title>
-      <link>https://github.com/Nicholas-Tritsaris/Wikimedia</link>
-      <description>A cool project by Nicholas.</description>
+      <link>https://blueboop.is-a.dev/Wikimedia/</link>
+      <description>A Wikipedia-like page with the &quot;blueboop&quot; theme.</description>
       <pubDate>Sun, 22 Feb 2026 21:30:42 GMT</pubDate>
       <guid isPermaLink="false">1164256688</guid>
     </item>    <item>
@@ -58,7 +100,7 @@
     </item>    <item>
       <title>Workspace</title>
       <link>https://blueboop.is-a.dev/workspace/</link>
-      <description>A cool project by Nicholas.</description>
+      <description>Douyin Downloader</description>
       <pubDate>Sat, 31 Jan 2026 03:25:36 GMT</pubDate>
       <guid isPermaLink="false">1146403234</guid>
     </item>    <item>
