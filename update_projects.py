@@ -6,6 +6,17 @@ import base64
 import html
 from datetime import datetime
 
+# Optional Groq integration
+try:
+    from groq import Groq
+    GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
+    if GROQ_API_KEY:
+        client = Groq(api_key=GROQ_API_KEY)
+    else:
+        client = None
+except ImportError:
+    client = None
+
 USERNAME = "Nicholas-Tritsaris"
 REPO_NAME = "Nicholas-Tritsaris.github.io"
 
@@ -22,18 +33,8 @@ def fetch_repos():
     url = f"https://api.github.com/users/{USERNAME}/repos?sort=created&direction=desc&per_page=100"
     return fetch_json(url)
 
-def get_enhanced_description(repo):
-    """
-    Attempts to find a better description for the repository.
-    1. Check if the repo has a description in the API.
-    2. If not, try to fetch the README and extract the first non-header paragraph.
-    3. Specifically check for a README in a subdirectory with the same name as the repo (e.g., WMLUP/README.md).
-    """
-    api_desc = repo.get('description')
-    if api_desc and api_desc.strip():
-        return api_desc
-
-    repo_name = repo['name']
+def fetch_readme_text(repo_name):
+    """Fetches the README content for a given repository."""
     readme_urls = [
         f"https://api.github.com/repos/{USERNAME}/{repo_name}/contents/README.md",
         f"https://api.github.com/repos/{USERNAME}/{repo_name}/contents/{repo_name}/README.md"
@@ -43,15 +44,81 @@ def get_enhanced_description(repo):
         try:
             content_data = fetch_json(url)
             if 'content' in content_data:
-                readme_text = base64.b64decode(content_data['content']).decode('utf-8')
-                # Find the first paragraph that isn't a header, HTML tag, or separator
-                lines = readme_text.split('\n')
-                for line in lines:
-                    line = line.strip()
-                    if line and not (line.startswith('#') or line.startswith('<') or line.startswith('---')):
-                        return line
+                return base64.b64decode(content_data['content']).decode('utf-8')
         except Exception:
             continue
+    return ""
+
+def get_ai_description(repo, readme_text):
+    """Uses Groq AI to generate a short, nostalgic description."""
+    if not client:
+        return None
+
+    name = repo['name']
+    api_desc = repo.get('description', '')
+
+    prompt = f"""
+Create a short, nostalgic, and catchy description (max 160 characters) for the following GitHub repository.
+The description should fit a 90s/early 2000s "retro" web aesthetic.
+Repo Name: {name}
+Existing Description: {api_desc}
+README Snippet:
+{readme_text[:1000]}
+
+Rules:
+- Max 160 characters.
+- Use a fun, slightly informal, retro-enthusiast tone.
+- Output ONLY the description text.
+"""
+
+    try:
+        response = client.chat.completions.create(
+            model="llama-3.3-70b-versatile",
+            messages=[
+                {
+                    "role": "system",
+                    "content": "You are a helpful assistant that writes catchy, retro-style web descriptions."
+                },
+                {"role": "user", "content": prompt},
+            ],
+            temperature=0.7,
+            max_completion_tokens=100,
+        )
+        ai_desc = response.choices[0].message.content.strip().strip('"')
+        return ai_desc
+    except Exception as e:
+        print(f"Error generating AI description for {name}: {e}")
+        return None
+
+def get_enhanced_description(repo):
+    """
+    Attempts to find a better description for the repository.
+    1. Try to generate an AI description if Groq is available.
+    2. Fallback to the repo description from the API.
+    3. Fallback to extracting the first paragraph from the README.
+    """
+    repo_name = repo['name']
+    readme_text = fetch_readme_text(repo_name)
+
+    # 1. AI Description
+    if client:
+        ai_desc = get_ai_description(repo, readme_text)
+        if ai_desc:
+            return ai_desc
+
+    # 2. API Description
+    api_desc = repo.get('description')
+    if api_desc and api_desc.strip():
+        return api_desc
+
+    # 3. README Extraction
+    if readme_text:
+        # Find the first paragraph that isn't a header, HTML tag, or separator
+        lines = readme_text.split('\n')
+        for line in lines:
+            line = line.strip()
+            if line and not (line.startswith('#') or line.startswith('<') or line.startswith('---')):
+                return line
 
     return "A cool project by Nicholas."
 
