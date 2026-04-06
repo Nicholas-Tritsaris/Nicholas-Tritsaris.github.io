@@ -19,6 +19,28 @@ except ImportError:
 
 USERNAME = "Nicholas-Tritsaris"
 REPO_NAME = "Nicholas-Tritsaris.github.io"
+GENERIC_DESCRIPTION = "A cool project by Nicholas."
+
+# Cache of existing descriptions from index.html to avoid re-generation
+EXISTING_DESCRIPTIONS = {}
+
+def load_existing_descriptions():
+    """Parses index.html to find existing project descriptions."""
+    global EXISTING_DESCRIPTIONS
+    if not os.path.exists("index.html"):
+        return
+
+    with open("index.html", "r", encoding="utf-8") as f:
+        content = f.read()
+
+    # Simple regex to find card titles and their descriptions
+    # Note: This is a bit brittle but works for the current structure
+    pattern = re.compile(r"<h4>(.*?)</h4>\s*<p>(.*?)</p>", re.DOTALL)
+    matches = pattern.findall(content)
+    for title, desc in matches:
+        # Clean title and desc
+        clean_title = title.strip().lower()
+        EXISTING_DESCRIPTIONS[clean_title] = desc.strip()
 
 def fetch_json(url):
     req = urllib.request.Request(url)
@@ -56,6 +78,8 @@ def get_ai_description(repo, readme_text):
 
     name = repo['name']
     api_desc = repo.get('description', '')
+    if api_desc == GENERIC_DESCRIPTION:
+        api_desc = "None provided."
 
     prompt = f"""
 Create a short, nostalgic, and catchy description (max 160 characters) for the following GitHub repository.
@@ -93,25 +117,39 @@ Rules:
 def get_enhanced_description(repo):
     """
     Attempts to find a better description for the repository.
-    1. Try to generate an AI description if Groq is available.
-    2. Fallback to the repo description from the API.
-    3. Fallback to extracting the first paragraph from the README.
+    1. Check if we already have a custom/AI description in index.html.
+    2. Try to generate an AI description if Groq is available.
+    3. Fallback to the repo description from the API (if not generic).
+    4. Fallback to extracting the first paragraph from the README.
     """
     repo_name = repo['name']
-    readme_text = fetch_readme_text(repo_name)
+    display_name_key = repo_name.replace("-", " ").replace("_", " ").lower()
 
-    # 1. AI Description
+    # 1. Check existing descriptions (Cache)
+    # If the description is already in index.html and isn't the generic one, reuse it.
+    existing_desc = EXISTING_DESCRIPTIONS.get(display_name_key)
+    if existing_desc and existing_desc != GENERIC_DESCRIPTION:
+        return existing_desc
+
+    # Only fetch README if we really need it (for AI or Fallback)
+    readme_text = ""
+
+    # 2. AI Description
     if client:
+        readme_text = fetch_readme_text(repo_name)
         ai_desc = get_ai_description(repo, readme_text)
         if ai_desc:
             return ai_desc
 
-    # 2. API Description
+    # 3. API Description (only if not generic)
     api_desc = repo.get('description')
-    if api_desc and api_desc.strip():
+    if api_desc and api_desc.strip() and api_desc != GENERIC_DESCRIPTION:
         return api_desc
 
-    # 3. README Extraction
+    # 4. README Extraction
+    if not readme_text:
+        readme_text = fetch_readme_text(repo_name)
+
     if readme_text:
         # Find the first paragraph that isn't a header, HTML tag, or separator
         lines = readme_text.split('\n')
@@ -120,7 +158,7 @@ def get_enhanced_description(repo):
             if line and not (line.startswith('#') or line.startswith('<') or line.startswith('---')):
                 return line
 
-    return "A cool project by Nicholas."
+    return GENERIC_DESCRIPTION
 
 def format_card(repo):
     name = repo['name']
@@ -156,6 +194,7 @@ def generate_rss(repos):
     rss_items = []
     for repo in repos:
         name = repo['name']
+        # We call get_enhanced_description again, but it should hit the cache now if cards were generated
         description = html.escape(get_enhanced_description(repo))
         display_name = name.replace("-", " ").replace("_", " ").title()
 
@@ -211,6 +250,8 @@ def main():
     ]
 
     print(f"Found {len(filtered_repos)} public repositories.")
+
+    load_existing_descriptions()
 
     cards_html = "".join([format_card(repo) for repo in filtered_repos])
 

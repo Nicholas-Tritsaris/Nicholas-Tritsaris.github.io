@@ -3,4 +3,3 @@
 # info.quantum.core.systems@gmail.com
 # nicholas.tritsaris13@gmail.com
 # nicholas.tritsaris13@bk.ru
-# nicholas@mail.sb
