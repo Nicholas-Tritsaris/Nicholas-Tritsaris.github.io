@@ -19,6 +19,32 @@ except ImportError:
 
 USERNAME = "Nicholas-Tritsaris"
 REPO_NAME = "Nicholas-Tritsaris.github.io"
+GENERIC_DESCRIPTION = "A cool project by Nicholas."
+
+# Caches to avoid redundant calls
+EXISTING_DESCRIPTIONS = {}
+README_CACHE = {}
+
+def get_display_name(repo_name):
+    """Formats a repo name into its display title (e.g., 'my-repo' -> 'My Repo')."""
+    return repo_name.replace("-", " ").replace("_", " ").title()
+
+def load_existing_descriptions():
+    """Parses index.html to find existing project descriptions."""
+    global EXISTING_DESCRIPTIONS
+    if not os.path.exists("index.html"):
+        return
+
+    with open("index.html", "r", encoding="utf-8") as f:
+        content = f.read()
+
+    # Matches the card titles and descriptions based on the established HTML structure
+    pattern = re.compile(r"<h4>(.*?)</h4>\s*<p>(.*?)</p>", re.DOTALL)
+    matches = pattern.findall(content)
+    for title, desc in matches:
+        # Use the exact display name as the key for reliable lookup
+        clean_title = title.strip()
+        EXISTING_DESCRIPTIONS[clean_title] = desc.strip()
 
 def fetch_json(url):
     req = urllib.request.Request(url)
@@ -34,7 +60,10 @@ def fetch_repos():
     return fetch_json(url)
 
 def fetch_readme_text(repo_name):
-    """Fetches the README content for a given repository."""
+    """Fetches and caches the README content for a given repository."""
+    if repo_name in README_CACHE:
+        return README_CACHE[repo_name]
+
     readme_urls = [
         f"https://api.github.com/repos/{USERNAME}/{repo_name}/contents/README.md",
         f"https://api.github.com/repos/{USERNAME}/{repo_name}/contents/{repo_name}/README.md"
@@ -44,9 +73,13 @@ def fetch_readme_text(repo_name):
         try:
             content_data = fetch_json(url)
             if 'content' in content_data:
-                return base64.b64decode(content_data['content']).decode('utf-8')
+                content = base64.b64decode(content_data['content']).decode('utf-8')
+                README_CACHE[repo_name] = content
+                return content
         except Exception:
             continue
+
+    README_CACHE[repo_name] = ""
     return ""
 
 def get_ai_description(repo, readme_text):
@@ -56,6 +89,8 @@ def get_ai_description(repo, readme_text):
 
     name = repo['name']
     api_desc = repo.get('description', '')
+    if api_desc == GENERIC_DESCRIPTION:
+        api_desc = "None provided."
 
     prompt = f"""
 Create a short, nostalgic, and catchy description (max 160 characters) for the following GitHub repository.
@@ -93,39 +128,51 @@ Rules:
 def get_enhanced_description(repo):
     """
     Attempts to find a better description for the repository.
-    1. Try to generate an AI description if Groq is available.
-    2. Fallback to the repo description from the API.
-    3. Fallback to extracting the first paragraph from the README.
+    Strictly follows the "only regenerate if generic" rule.
     """
     repo_name = repo['name']
-    readme_text = fetch_readme_text(repo_name)
+    display_name = get_display_name(repo_name)
 
-    # 1. AI Description
-    if client:
-        ai_desc = get_ai_description(repo, readme_text)
-        if ai_desc:
-            return ai_desc
+    # 1. Check existing descriptions (Cache from index.html OR newly generated)
+    # If the description is already in index.html and isn't the generic one, reuse it.
+    existing_desc = EXISTING_DESCRIPTIONS.get(display_name)
+    if existing_desc and existing_desc != GENERIC_DESCRIPTION:
+        return existing_desc
 
-    # 2. API Description
+    # 2. Check API Description
+    # If the API has a non-generic description, we'll use it (treating it as manual input).
     api_desc = repo.get('description')
-    if api_desc and api_desc.strip():
+    if api_desc and api_desc.strip() and api_desc != GENERIC_DESCRIPTION:
+        EXISTING_DESCRIPTIONS[display_name] = api_desc
         return api_desc
 
-    # 3. README Extraction
+    # 3. AI Generation
+    # Triggered only if we are currently stuck with a generic description or none at all.
+    if client:
+        readme_text = fetch_readme_text(repo_name)
+        if readme_text:
+            ai_desc = get_ai_description(repo, readme_text)
+            if ai_desc:
+                EXISTING_DESCRIPTIONS[display_name] = ai_desc
+                return ai_desc
+
+    # 4. Fallback to README manual extraction
+    readme_text = fetch_readme_text(repo_name)
     if readme_text:
         # Find the first paragraph that isn't a header, HTML tag, or separator
         lines = readme_text.split('\n')
         for line in lines:
             line = line.strip()
             if line and not (line.startswith('#') or line.startswith('<') or line.startswith('---')):
+                EXISTING_DESCRIPTIONS[display_name] = line
                 return line
 
-    return "A cool project by Nicholas."
+    return GENERIC_DESCRIPTION
 
 def format_card(repo):
     name = repo['name']
     description = html.escape(get_enhanced_description(repo), quote=False)
-    display_name = name.replace("-", " ").replace("_", " ").title()
+    display_name = get_display_name(name)
 
     homepage = repo['homepage']
     html_url = repo['html_url']
@@ -156,8 +203,9 @@ def generate_rss(repos):
     rss_items = []
     for repo in repos:
         name = repo['name']
+        # Already cached in card generation phase
         description = html.escape(get_enhanced_description(repo))
-        display_name = name.replace("-", " ").replace("_", " ").title()
+        display_name = get_display_name(name)
 
         homepage = repo['homepage']
         html_url = repo['html_url']
@@ -212,6 +260,9 @@ def main():
 
     print(f"Found {len(filtered_repos)} public repositories.")
 
+    load_existing_descriptions()
+
+    # Phase 1: Card Generation (populates cache)
     cards_html = "".join([format_card(repo) for repo in filtered_repos])
 
     with open("index.html", "r", encoding="utf-8") as f:
@@ -230,6 +281,7 @@ def main():
     else:
         print("Markers not found in index.html. Make sure <!-- PROJECTS_START --> and <!-- PROJECTS_END --> are present.")
 
+    # Phase 2: RSS Generation (uses populated cache)
     generate_rss(filtered_repos)
 
 if __name__ == "__main__":
