@@ -56,75 +56,58 @@ function errResponse(msg, status, origin, env) {
 }
 
 // ──────────────────────────────────────────────────────────────────
-// JWT (minimal — no external library needed)
+// AUTH0 JWT VERIFICATION (RS256)
 // ──────────────────────────────────────────────────────────────────
 
-async function signJWT(payload, secret) {
-  var header  = { alg: 'HS256', typ: 'JWT' };
-  var encHdr  = b64url(JSON.stringify(header));
-  var encPld  = b64url(JSON.stringify(payload));
-  var input   = encHdr + '.' + encPld;
-  var key     = await crypto.subtle.importKey(
-    'raw', new TextEncoder().encode(secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']
-  );
-  var sig     = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(input));
-  var encSig  = arrayToB64url(new Uint8Array(sig));
-  return input + '.' + encSig;
-}
-
-async function verifyJWT(token, secret) {
+async function verifyAuth0Token(token, env) {
   try {
-    var parts = token.split('.');
+    const domain = env.AUTH0_DOMAIN;
+    const audience = env.AUTH0_AUDIENCE;
+
+    if (!domain || !audience) {
+      throw new Error('Auth0 domain or audience not configured');
+    }
+
+    const parts = token.split('.');
     if (parts.length !== 3) return null;
-    var input   = parts[0] + '.' + parts[1];
-    var key     = await crypto.subtle.importKey(
-      'raw', new TextEncoder().encode(secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['verify']
-    );
-    var sigBytes = b64urlToArray(parts[2]);
-    var valid    = await crypto.subtle.verify('HMAC', key, sigBytes, new TextEncoder().encode(input));
-    if (!valid) return null;
-    var payload  = JSON.parse(atob(parts[1].replace(/-/g,'+').replace(/_/g,'/')));
+
+    const header = JSON.parse(atob(parts[0].replace(/-/g, '+').replace(/_/g, '/')));
+    const payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
+
+    if (payload.iss !== `https://${domain}/`) return null;
+    if (Array.isArray(payload.aud) ? !payload.aud.includes(audience) : payload.aud !== audience) return null;
     if (payload.exp && payload.exp * 1000 < Date.now()) return null;
-    return payload;
+
+    // Fetch JWKS to get public key
+    const jwksRes = await fetch(`https://${domain}/.well-known/jwks.json`);
+    const jwks = await jwksRes.json();
+    const keyData = jwks.keys.find(k => k.kid === header.kid);
+    if (!keyData) return null;
+
+    const publicKey = await crypto.subtle.importKey(
+      'jwk',
+      keyData,
+      { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' },
+      false,
+      ['verify']
+    );
+
+    const encoder = new TextEncoder();
+    const data = encoder.encode(parts[0] + '.' + parts[1]);
+    const signature = new Uint8Array(atob(parts[2].replace(/-/g, '+').replace(/_/g, '/')).split('').map(c => c.charCodeAt(0)));
+
+    const isValid = await crypto.subtle.verify(
+      'RSASSA-PKCS1-v1_5',
+      publicKey,
+      signature,
+      data
+    );
+
+    return isValid ? payload : null;
   } catch (e) {
+    console.error('JWT Verification Error:', e);
     return null;
   }
-}
-
-function b64url(str) {
-  return btoa(str).replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');
-}
-
-function arrayToB64url(arr) {
-  return btoa(String.fromCharCode(...arr)).replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');
-}
-
-function b64urlToArray(str) {
-  var b = str.replace(/-/g,'+').replace(/_/g,'/');
-  var bin = atob(b);
-  return new Uint8Array(bin.split('').map(c => c.charCodeAt(0)));
-}
-
-// ──────────────────────────────────────────────────────────────────
-// CREDENTIAL VERIFICATION
-// ──────────────────────────────────────────────────────────────────
-
-async function sha256Hex(str) {
-  var data = new TextEncoder().encode(str);
-  var buf  = await crypto.subtle.digest('SHA-256', data);
-  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
-}
-
-async function verifyCredentials(username, password, env) {
-  if (!env.ADMIN_USERNAME || !env.ADMIN_PASSWORD_HASH) {
-    throw new Error('Admin credentials not configured');
-  }
-  // Constant-time username comparison
-  if (username !== env.ADMIN_USERNAME) return false;
-  // Password is stored as SHA-256(password)
-  // Generate hash: echo -n "yourpassword" | sha256sum
-  var inputHash = await sha256Hex(password);
-  return inputHash === env.ADMIN_PASSWORD_HASH.toLowerCase();
 }
 
 // ──────────────────────────────────────────────────────────────────
@@ -230,50 +213,13 @@ async function handleTrack(request, env, clientIP, origin) {
   }
 }
 
-async function handleAuth(request, env, clientIP, origin) {
-  // Rate limit by IP
-  if (!checkRateLimit(clientIP)) {
-    return errResponse('too_many_requests', 429, origin, env);
-  }
-
-  var body;
-  try {
-    body = await request.json();
-  } catch (e) {
-    return errResponse('invalid_json', 400, origin, env);
-  }
-
-  var { username, password } = body || {};
-  if (!username || !password) {
-    return errResponse('credentials_required', 400, origin, env);
-  }
-
-  var valid;
-  try {
-    valid = await verifyCredentials(String(username), String(password), env);
-  } catch (e) {
-    return errResponse('auth_not_configured', 500, origin, env);
-  }
-
-  if (!valid) {
-    return errResponse('invalid_credentials', 401, origin, env);
-  }
-
-  // Sign JWT — 1 hour expiry
-  var now     = Math.floor(Date.now() / 1000);
-  var payload = { sub: username, iat: now, exp: now + 3600, iss: 'silhouette' };
-  var token   = await signJWT(payload, env.JWT_SECRET);
-
-  return jsonResponse({ token }, 200, origin, env);
-}
-
 async function handleData(request, env, clientIP, origin) {
   // Verify JWT
   var authHeader = request.headers.get('Authorization') || '';
   var token      = authHeader.replace(/^Bearer\s+/i, '');
   if (!token) return errResponse('unauthorized', 401, origin, env);
 
-  var jwtPayload = await verifyJWT(token, env.JWT_SECRET);
+  var jwtPayload = await verifyAuth0Token(token, env);
   if (!jwtPayload) return errResponse('invalid_token', 401, origin, env);
 
   try {
@@ -346,9 +292,6 @@ export default {
       return handleTrack(request, env, clientIP, origin);
     }
 
-    if (path === '/api/auth' && method === 'POST') {
-      return handleAuth(request, env, clientIP, origin);
-    }
 
     if (path === '/api/data' && method === 'GET') {
       return handleData(request, env, clientIP, origin);

@@ -23,9 +23,8 @@ LOG_LEVEL = "error"             # Options: debug | info | warn | error
 # ─────────────────────────────────────────────────────────────────
 # SECRETS — DO NOT put real values here. Use wrangler CLI:
 #
-#   wrangler secret put ADMIN_USERNAME
-#   wrangler secret put ADMIN_PASSWORD_HASH
-#   wrangler secret put JWT_SECRET
+#   wrangler secret put AUTH0_DOMAIN
+#   wrangler secret put AUTH0_AUDIENCE
 #   wrangler secret put GOOGLE_CLIENT_ID
 #   wrangler secret put GOOGLE_CLIENT_SECRET
 #   wrangler secret put GOOGLE_REFRESH_TOKEN
