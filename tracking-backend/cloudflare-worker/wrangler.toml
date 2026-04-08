@@ -20,7 +20,7 @@ ALLOWED_ORIGIN_1 = "https://blueboop.is-a.dev"
 ALLOWED_ORIGIN_2 = "https://nicholas-tritsaris.github.io"
 LOG_LEVEL = "error"             # Options: debug | info | warn | error
 AUTH0_DOMAIN = "blueboop.au.auth0.com"
-AUTH0_AUDIENCE = "YOUR_AUTH0_API_IDENTIFIER"
+AUTH0_AUDIENCE = "https://blueboop.au.auth0.com/api/v2/"
 
 # ─────────────────────────────────────────────────────────────────
 # SECRETS — DO NOT put real values here. Use wrangler CLI:

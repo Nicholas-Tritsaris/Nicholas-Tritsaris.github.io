@@ -11,7 +11,7 @@
   // ─────────────────────────────────────────────────────────────────────────────
   var AUTH0_DOMAIN    = 'blueboop.au.auth0.com';
   var AUTH0_CLIENT_ID = 'yfnDQa8raUx03VkZD4Co0z7sLPSgasUo';
-  var AUTH0_AUDIENCE  = ''; // Optional: Only set if you have a backend API
+  var AUTH0_AUDIENCE  = 'https://blueboop.au.auth0.com/api/v2/'; // Optional: Only set if you have a backend API
   var DASHBOARD_URL   = window.location.origin + '/dashboard.html';
   var REDIRECT_URI    = window.location.origin + window.location.pathname;
 
