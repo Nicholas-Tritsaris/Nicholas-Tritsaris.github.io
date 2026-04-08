@@ -1,5 +1,5 @@
 # ██████ PROJECT SILHOUETTE — API SETUP GUIDE ██████
-## Evernote, Google Tasks, and OneNote API Credentials
+## Evernote, Google Tasks, OneNote, and Auth0 API Credentials
 
 ---
 
@@ -292,6 +292,16 @@ wrangler secret put FIREBASE_PRIVATE_KEY
 | Dashboard data via API | ✅ Full support               | ⚠️ Express only (Thrift)    | ✅ Full support     | ✅ Full support       |
 | Cost                   | Free                          | Free (dev token)             | Free                | Free (generous tier) |
 | Complexity             | Easy                          | Medium                       | Hard                | Easy                  |
+
+---
+
+## OPTION E — AUTH0 (SPA ONLY)
+
+If you are only using Auth0 for frontend authentication without a dedicated backend API yet:
+
+1. Follow the [Auth0 Application Settings Guide](./auth0-application-settings.md) to set up your Single Page Application.
+2. Ensure `AUTH0_AUDIENCE` in `auth.js` is left as an empty string (`''`).
+3. You will be able to log users in and out, but the "Intelligence Dashboard" will not have a backend to fetch data from until you deploy a Worker or Server.
 
 ---
 

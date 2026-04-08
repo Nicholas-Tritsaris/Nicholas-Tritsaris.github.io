@@ -11,7 +11,7 @@
   // ─────────────────────────────────────────────────────────────────────────────
   var AUTH0_DOMAIN    = 'blueboop.au.auth0.com';
   var AUTH0_CLIENT_ID = 'yfnDQa8raUx03VkZD4Co0z7sLPSgasUo';
-  var AUTH0_AUDIENCE  = 'https://silhouette-api'; // Update to match your Auth0 API Identifier
+  var AUTH0_AUDIENCE  = ''; // Optional: Only set if you have a backend API
   var DASHBOARD_URL   = window.location.origin + '/dashboard.html';
   var REDIRECT_URI    = window.location.origin + window.location.pathname;
 
@@ -42,14 +42,19 @@
         throw new Error("Auth0 SDK failed to load. Please check your internet connection and Content Security Policy.");
       }
 
-      auth0Client = await createFn({
+      const auth0Options = {
         domain: AUTH0_DOMAIN,
         client_id: AUTH0_CLIENT_ID,
         authorizationParams: {
-          audience: AUTH0_AUDIENCE,
           redirect_uri: REDIRECT_URI
         }
-      });
+      };
+
+      if (AUTH0_AUDIENCE) {
+        auth0Options.authorizationParams.audience = AUTH0_AUDIENCE;
+      }
+
+      auth0Client = await createFn(auth0Options);
 
       if (window.location.search.includes("code=") && window.location.search.includes("state=")) {
         await auth0Client.handleRedirectCallback();

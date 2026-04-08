@@ -73,7 +73,8 @@ async function verifyAuth0Token(token, env) {
     const audience = env.AUTH0_AUDIENCE;
 
     if (!domain || !audience) {
-      throw new Error('Auth0 domain or audience not configured');
+      console.error('Auth0 domain or audience not configured');
+      return null;
     }
 
     const parts = token.split('.');
