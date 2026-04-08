@@ -18,7 +18,24 @@
   var auth0Client = null;
 
   async function initAuth0() {
+    // If already initialized, return
+    if (auth0Client) return;
+
     try {
+      // Check if the SDK is loaded
+      if (typeof createAuth0Client === 'undefined') {
+        console.warn("Auth0 SDK not loaded yet, waiting...");
+        // Wait up to 5 seconds for the SDK to load
+        for (let i = 0; i < 50; i++) {
+          await new Promise(resolve => setTimeout(resolve, 100));
+          if (typeof createAuth0Client !== 'undefined') break;
+        }
+      }
+
+      if (typeof createAuth0Client === 'undefined') {
+        throw new Error("Auth0 SDK failed to load. Please check your internet connection and Content Security Policy.");
+      }
+
       auth0Client = await createAuth0Client({
         domain: AUTH0_DOMAIN,
         client_id: AUTH0_CLIENT_ID,
@@ -32,15 +49,11 @@
       if (window.location.search.includes("code=") && window.location.search.includes("state=")) {
         await auth0Client.handleRedirectCallback();
         window.history.replaceState({}, document.title, window.location.pathname);
-
-        // If we just logged in, and we're not on dashboard, maybe go there?
-        // Actually, silOpenLogin handles the explicit redirect.
       }
 
       const isAuthenticated = await auth0Client.isAuthenticated();
       if (isAuthenticated) {
         console.log("User is authenticated");
-        // Update UI if needed
         const loginBtn = document.getElementById('login-btn');
         if (loginBtn) {
           loginBtn.innerHTML = '&#128275; DASHBOARD';
@@ -48,7 +61,7 @@
         }
       }
     } catch (err) {
-      console.error("Auth0 initialization failed", err);
+      console.error("Auth0 initialization failed:", err);
     }
   }
 
@@ -57,7 +70,12 @@
   // ─────────────────────────────────────────────────────────────────────────────
 
   window.silOpenLogin = async function () {
-    if (!auth0Client) await initAuth0();
+    await initAuth0();
+
+    if (!auth0Client) {
+      alert("Authentication system is not ready. Please refresh the page.");
+      return;
+    }
 
     const isAuthenticated = await auth0Client.isAuthenticated();
     if (isAuthenticated) {
@@ -72,20 +90,26 @@
   };
 
   window.silLogout = async function () {
-    if (!auth0Client) await initAuth0();
-    await auth0Client.logout({
-      logoutParams: {
-        returnTo: window.location.origin + '/'
-      }
-    });
+    await initAuth0();
+    if (auth0Client) {
+      await auth0Client.logout({
+        logoutParams: {
+          returnTo: window.location.origin + '/'
+        }
+      });
+    }
   };
 
   window.silRequireAuth = async function () {
-    if (!auth0Client) await initAuth0();
+    await initAuth0();
+
+    if (!auth0Client) {
+      console.error("Auth0 client not initialized");
+      return null;
+    }
 
     const isAuthenticated = await auth0Client.isAuthenticated();
     if (!isAuthenticated) {
-      // Not authenticated, redirect to login
       await auth0Client.loginWithRedirect({
         authorizationParams: {
           redirect_uri: REDIRECT_URI
@@ -95,8 +119,7 @@
     }
 
     try {
-      const token = await auth0Client.getTokenSilently();
-      return token;
+      return await auth0Client.getTokenSilently();
     } catch (e) {
       console.error("Error getting token", e);
       return null;
@@ -104,7 +127,8 @@
   };
 
   window.silGetToken = async function () {
-    if (!auth0Client) await initAuth0();
+    await initAuth0();
+    if (!auth0Client) return null;
     try {
       return await auth0Client.getTokenSilently();
     } catch (e) {
