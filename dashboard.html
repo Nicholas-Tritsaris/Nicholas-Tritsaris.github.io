@@ -479,6 +479,7 @@
 </div>
 
 <!-- AUTH SCRIPT -->
+<script src="https://cdn.auth0.com/js/auth0-spa-js/2.0/auth0-spa-js.production.js"></script>
 <script src="auth.js"></script>
 
 <!-- DASHBOARD LOGIC -->
@@ -496,16 +497,18 @@
   var sortDir      = -1; // -1 = desc, 1 = asc
 
   // ──────────────────── INIT ────────────────────
-  function init() {
+  async function init() {
     // Auth gate: check JWT
-    var token = window.silRequireAuth ? window.silRequireAuth() : null;
-    if (!token) return; // silRequireAuth redirects if invalid
+    if (window.silRequireAuth) {
+      const token = await window.silRequireAuth();
+      if (!token) return;
 
-    // Show dashboard content
-    document.getElementById('auth-gate').style.display   = 'none';
-    document.getElementById('dash-content').style.display = 'block';
+      // Show dashboard content
+      document.getElementById('auth-gate').style.display   = 'none';
+      document.getElementById('dash-content').style.display = 'block';
 
-    loadData(token);
+      loadData(token);
+    }
   }
 
   // ──────────────────── LOAD DATA ────────────────────
@@ -541,8 +544,8 @@
     });
   }
 
-  window.refreshData = function () {
-    var token = window.silGetToken ? window.silGetToken() : null;
+  window.refreshData = async function () {
+    var token = window.silGetToken ? await window.silGetToken() : null;
     if (token) loadData(token);
   };
 

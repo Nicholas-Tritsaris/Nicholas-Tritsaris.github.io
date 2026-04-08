@@ -19,13 +19,13 @@ NOTE_SERVICE = "google-tasks"   # Options: google-tasks | evernote | onenote | f
 ALLOWED_ORIGIN_1 = "https://blueboop.is-a.dev"
 ALLOWED_ORIGIN_2 = "https://nicholas-tritsaris.github.io"
 LOG_LEVEL = "error"             # Options: debug | info | warn | error
+AUTH0_DOMAIN = "blueboop.au.auth0.com"
 
 # ─────────────────────────────────────────────────────────────────
 # SECRETS — DO NOT put real values here. Use wrangler CLI:
 #
-#   wrangler secret put ADMIN_USERNAME
-#   wrangler secret put ADMIN_PASSWORD_HASH
-#   wrangler secret put JWT_SECRET
+#   wrangler secret put AUTH0_DOMAIN
+#   wrangler secret put AUTH0_AUDIENCE
 #   wrangler secret put GOOGLE_CLIENT_ID
 #   wrangler secret put GOOGLE_CLIENT_SECRET
 #   wrangler secret put GOOGLE_REFRESH_TOKEN
