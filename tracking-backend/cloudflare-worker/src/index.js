@@ -59,6 +59,14 @@ function errResponse(msg, status, origin, env) {
 // AUTH0 JWT VERIFICATION (RS256)
 // ──────────────────────────────────────────────────────────────────
 
+let jwksCache = null;
+
+function b64urlDecode(str) {
+  str = str.replace(/-/g, '+').replace(/_/g, '/');
+  while (str.length % 4) str += '=';
+  return atob(str);
+}
+
 async function verifyAuth0Token(token, env) {
   try {
     const domain = env.AUTH0_DOMAIN;
@@ -71,17 +79,20 @@ async function verifyAuth0Token(token, env) {
     const parts = token.split('.');
     if (parts.length !== 3) return null;
 
-    const header = JSON.parse(atob(parts[0].replace(/-/g, '+').replace(/_/g, '/')));
-    const payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
+    const header = JSON.parse(b64urlDecode(parts[0]));
+    const payload = JSON.parse(b64urlDecode(parts[1]));
 
     if (payload.iss !== `https://${domain}/`) return null;
     if (Array.isArray(payload.aud) ? !payload.aud.includes(audience) : payload.aud !== audience) return null;
     if (payload.exp && payload.exp * 1000 < Date.now()) return null;
 
-    // Fetch JWKS to get public key
-    const jwksRes = await fetch(`https://${domain}/.well-known/jwks.json`);
-    const jwks = await jwksRes.json();
-    const keyData = jwks.keys.find(k => k.kid === header.kid);
+    // Fetch JWKS to get public key (with simple in-memory caching)
+    if (!jwksCache) {
+      const jwksRes = await fetch(`https://${domain}/.well-known/jwks.json`);
+      jwksCache = await jwksRes.json();
+    }
+
+    const keyData = jwksCache.keys.find(k => k.kid === header.kid);
     if (!keyData) return null;
 
     const publicKey = await crypto.subtle.importKey(
@@ -94,7 +105,8 @@ async function verifyAuth0Token(token, env) {
 
     const encoder = new TextEncoder();
     const data = encoder.encode(parts[0] + '.' + parts[1]);
-    const signature = new Uint8Array(atob(parts[2].replace(/-/g, '+').replace(/_/g, '/')).split('').map(c => c.charCodeAt(0)));
+    const sigStr = b64urlDecode(parts[2]);
+    const signature = new Uint8Array(sigStr.split('').map(c => c.charCodeAt(0)));
 
     const isValid = await crypto.subtle.verify(
       'RSASSA-PKCS1-v1_5',

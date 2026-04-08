@@ -9,11 +9,11 @@
   // ─────────────────────────────────────────────────────────────────────────────
   // CONFIGURATION
   // ─────────────────────────────────────────────────────────────────────────────
-  var AUTH0_DOMAIN    = 'YOUR_AUTH0_DOMAIN';
-  var AUTH0_CLIENT_ID = 'YOUR_AUTH0_CLIENT_ID';
-  var AUTH0_AUDIENCE  = 'https://YOUR_WORKER.YOUR_SUBDOMAIN.workers.dev/api';
+  var AUTH0_DOMAIN    = 'blueboop.au.auth0.com';
+  var AUTH0_CLIENT_ID = 'yfnDQa8raUx03VkZD4Co0z7sLPSgasUo';
+  var AUTH0_AUDIENCE  = 'https://silhouette-api'; // Update to match your Auth0 API Identifier
   var DASHBOARD_URL   = window.location.origin + '/dashboard.html';
-  var REDIRECT_URI    = window.location.origin + '/';
+  var REDIRECT_URI    = window.location.origin + window.location.pathname;
 
   var auth0Client = null;
 
@@ -24,17 +24,17 @@
         client_id: AUTH0_CLIENT_ID,
         authorizationParams: {
           audience: AUTH0_AUDIENCE,
-          redirect_uri: window.location.origin + '/'
+          redirect_uri: REDIRECT_URI
         }
       });
 
       // Handle the redirect callback
       if (window.location.search.includes("code=") && window.location.search.includes("state=")) {
         await auth0Client.handleRedirectCallback();
-        window.history.replaceState({}, document.title, "/");
+        window.history.replaceState({}, document.title, window.location.pathname);
 
-        // If we were on index.html and logged in, maybe we want to go to dashboard?
-        // But usually silOpenLogin is what starts it.
+        // If we just logged in, and we're not on dashboard, maybe go there?
+        // Actually, silOpenLogin handles the explicit redirect.
       }
 
       const isAuthenticated = await auth0Client.isAuthenticated();
@@ -65,7 +65,7 @@
     } else {
       await auth0Client.loginWithRedirect({
         authorizationParams: {
-          redirect_uri: window.location.origin + '/'
+          redirect_uri: window.location.origin + '/dashboard.html'
         }
       });
     }
@@ -88,7 +88,7 @@
       // Not authenticated, redirect to login
       await auth0Client.loginWithRedirect({
         authorizationParams: {
-          redirect_uri: window.location.origin + '/'
+          redirect_uri: REDIRECT_URI
         }
       });
       return null;
