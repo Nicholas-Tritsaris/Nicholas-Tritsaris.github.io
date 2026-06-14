@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>MEMORY CORE // BOOT SEQUENCE</title>
+
+<style>
+body {
+  margin: 0;
+  background: black;
+  color: #cfcfcf;
+  font-family: monospace;
+  overflow: hidden;
+}
+
+/* scanlines */
+body::before {
+  content: "";
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(255,255,255,0.03),
+    rgba(255,255,255,0.03) 1px,
+    transparent 2px,
+    transparent 4px
+  );
+  pointer-events: none;
+}
+
+/* flicker */
+@keyframes flicker {
+  0% { opacity: 1; }
+  50% { opacity: 0.8; }
+  52% { opacity: 0.4; }
+  55% { opacity: 1; }
+}
+
+#screen {
+  padding: 20px;
+  white-space: pre-wrap;
+  font-size: 16px;
+  animation: flicker 2s infinite;
+}
+
+.node {
+  display: block;
+  margin: 8px 0;
+  padding: 6px 10px;
+  border: 1px solid #333;
+  cursor: pointer;
+  color: #7ef;
+}
+
+.node:hover {
+  background: #111;
+}
+
+.damaged {
+  color: #999;
+  opacity: 0.7;
+}
+</style>
+</head>
+
+<body>
+
+<div id="screen"></div>
+
+<script>
+const screen = document.getElementById("screen");
+
+/* ---------- SAVE SYSTEM ---------- */
+let memoryState = JSON.parse(localStorage.getItem("memory_state") || "{}");
+
+function saveState() {
+  localStorage.setItem("memory_state", JSON.stringify(memoryState));
+}
+
+/* ---------- BOOT SEQUENCE ---------- */
+const bootLines = [
+  "BOOTING MEMORY CORE...",
+  "CHECKING ARCHIVE INTEGRITY...",
+  "RECONSTRUCTING FRAGMENTS...",
+  "WARNING: CORRUPTION DETECTED",
+  "INITIALIZING INTERFACE..."
+];
+
+function boot(i = 0) {
+  if (i >= bootLines.length) return setTimeout(menu, 500);
+
+  screen.textContent += bootLines[i] + "\n";
+  setTimeout(() => boot(i + 1), 500);
+}
+
+/* ---------- MENU ---------- */
+function menu() {
+  screen.innerHTML = "";
+
+  const title = document.createElement("div");
+  title.textContent = "MEMORY CORE / ACCESS POINT";
+  screen.appendChild(title);
+
+  const a = node("NODE_A // ARCHIVE LACHLAN & ADAM", openA);
+  const b = node("NODE_B // ARCHIVE ADDISON / HALEY / XAVIER", openB);
+  const c = node("?? CORRUPTED MEMORY SECTOR ??", secret);
+
+  screen.appendChild(a);
+  screen.appendChild(b);
+
+  if (memoryState.a && memoryState.b) {
+    screen.appendChild(c);
+  }
+}
+
+/* ---------- NODE CREATION ---------- */
+function node(label, action) {
+  const div = document.createElement("div");
+  div.className = "node damaged";
+  div.textContent = label;
+
+  div.onclick = () => {
+    action();
+  };
+
+  return div;
+}
+
+function backButton() {
+  const btn = document.createElement("div");
+  btn.textContent = "< RETURN TO MEMORY CORE";
+  btn.style.marginTop = "20px";
+  btn.style.color = "#aaa";
+  btn.style.cursor = "pointer";
+
+  btn.onclick = menu;
+
+  screen.appendChild(btn);
+}
+
+/* ---------- TYPE SYSTEM (MEMORY REWRITES ITSELF) ---------- */
+function type(text, cb) {
+  screen.innerHTML = "";
+  let i = 0;
+
+  function step() {
+    if (i < text.length) {
+      const span = document.createElement("span");
+
+      let char = text[i];
+
+      if (Math.random() < 0.02) {
+        char = ["█","▓","▒","░"][Math.floor(Math.random()*4)];
+      }
+
+      span.textContent = char;
+      screen.appendChild(span);
+
+      i++;
+      setTimeout(step, 15 + Math.random()*35);
+    } else {
+      if (cb) cb(); // <-- IMPORTANT: we will NOT auto-menu anymore
+    }
+  }
+
+  step();
+}
+
+/* ---------- LOG A ---------- */
+function openA() {
+  memoryState.a = true;
+  saveState();
+
+  type(`NODE_A LOADED
+
+MEMORY TRACE: LACHLAN & ADAM
+STATUS: FRAGMENTED BUT STABLE
+
+- shared history detected
+- emotional imprint recorded
+- archive stability: 78%
+
+NOTE:
+this memory has been marked as "important"
+
+Message:
+Guys,
+I don’t know how to say this without sounding like a total pussy, but you two have been the only real friends I’ve had for years. The times we’ve muckedaround and talked about shit that actually matters-those were the only moments that made me feel like I wasn’t alone in this hellhole. Thank you for being there when no one else was.
+You both know why I’m doing this. I’m not getting better. The pain isn’t going away. And honestly, I’d rather die on my terms than turn into some hollowed-out version of myself who’s just taking up space.
+Take care of yourselves. Don’t waste time on people who don’t deserve it. And for fuck’s sake, don’t come to my funeral-just tell stories about what a loser I was.
+
+`, backButton);
+}
+
+/* ---------- LOG B ---------- */
+function openB() {
+  memoryState.b = true;
+  saveState();
+
+  type(`NODE_B LOADED
+
+MEMORY TRACE: ADDISON / HALEY / XAVIER
+STATUS: ACTIVE SUPPORT CLUSTER
+
+- stabilizing emotional signals
+- connection density: high
+- archive stability: 83%
+
+NOTE:
+this memory resists decay
+
+Message:
+You three have been my lifeline these past few months. Addison, your stupid jokes kept me from hanging myself at least five times. Haley, your listening ear saved me from so many bad nights. Xavier, your blunt honesty was the only thing that kept me grounded when everything else felt fake.
+I know we haven’t known each other forever, but you’ve all been there when it mattered most-and that means more than anything to me. I’m sorry I couldn’t stick around longer. But trust me, you’re better off without me dragging you down with my bullshit.
+Live your lives without looking back at this place-or at me-with regret. You deserve so much more than what this world has given us so far.
+`, backButton);
+}
+
+/* ---------- SECRET ---------- */
+function secret() {
+  type(`CORRUPTED NODE ACCESSED
+
+DATA LOSS: 71%
+ORIGIN: UNKNOWN
+
+"it remembers you even when you don't..."
+
+P U Z Z L E :
+find the missing sequence in memory fragments
+
+█▓▒░ system instability rising ░▒▓█
+`, menu);
+}
+
+/* ---------- START ---------- */
+boot();
+</script>
+
+</body>
+</html>
